@@ -9,7 +9,8 @@ from oauth2client import client
 
 Config = ConfigParser.ConfigParser()
 Config.read('camproxy.ini')
-MonitorURLFormat = Config.get('Zoneminder', 'MonitorURLFormat')
+MonitorURLFormatFull = Config.get('Zoneminder', 'MonitorURLFormatFull')
+MonitorURLFormatHalf = Config.get('Zoneminder', 'MonitorURLFormatHalf')
 RequiredDomain = Config.get('Authentication', 'RequiredDomain')
 ClientSecretsFile = Config.get('Authentication', 'ClientSecretsFile')
 FlaskHost = Config.get('Flask', 'Host')
@@ -26,10 +27,12 @@ app = flask.Flask(__name__)
 
 app.secret_key = str(uuid.uuid4())
 
-@app.route('/', defaults={'cam': None, 'rando': 0})
-@app.route('/<cam>', defaults={'rando': 0})
-@app.route('/<cam>/<rando>')
-def index(cam, rando):
+@app.route('/', defaults={'cam': None, 'rando': 0, 'fullsize': False})
+@app.route('/<cam>', defaults={'rando': 0, 'fullsize': False})
+@app.route('/<cam>/<rando>', defaults={'fullsize': False})
+@app.route('/full/<cam>', defaults={'rando': 0, 'fullsize': True})
+@app.route('/full/<cam>/<rando>', defaults={'fullsize': True})
+def index(cam, rando, fullsize):
   if 'credentials' not in flask.session:
     return flask.redirect(flask.url_for('oauth2callback'))
   credentials = client.OAuth2Credentials.from_json(flask.session['credentials'])
@@ -46,7 +49,11 @@ def index(cam, rando):
       if 'domain' in ppl_doc:
         if ppl_doc['domain'] == RequiredDomain:
           if cam:
-            URL = MonitorURLFormat % (cam)
+            if fullsize:
+              URL = MonitorURLFormatFull % (cam)
+            else:
+              URL = MonitorURLFormatHalf % (cam)
+  
             resp, content = httplib2.Http().request(URL)
             return Response(content, mimetype='image/jpeg')
           else:
@@ -73,6 +80,10 @@ def oauth2callback():
     credentials = flow.step2_exchange(auth_code)
     flask.session['credentials'] = credentials.to_json()
     return flask.redirect(flask.url_for('index'))
+
+@app.route('/favico.ico')
+def favicon():
+  return
 
 if __name__ == '__main__':
   app.debug = DEBUG

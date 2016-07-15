@@ -5,28 +5,90 @@
   <script type="text/javascript">
     var refreshID = 0;
 
-    var monitors = [ 19, 20, 21, 22, 23, 24 ];
+    var monitors = [ 20, 30, 32, -1,
+                     19, 21, 23, 24,
+                     22, 28, 26, 27,
+                     29, 31, 25, -1 ];
+
+    var monclass = [ 'img16x9', 'img16x9', 'img16x9', 'img4x3',
+                     'img16x9', 'img16x9', 'img4x3', 'img4x3',
+                     'img16x9', 'img4x3', 'img4x3', 'img4x3',
+                     'img16x9', 'img16x9', 'img4x3', 'img4x3' ];
+
+    var zoomid = -1;
+
+    var intervalid = -1;
 
     function pageLoad() {
-      setInterval ("tick()", 1500);
+      close_zoom();
+
+      for (m = 0; m < monclass.length; m++) {
+        document.getElementById("container" + m).className = monclass[m];
+
+        if (monclass[m] == 'img16x9') {
+          ww = 428;
+        } else {
+          ww = 320;
+        }
+      	document.getElementById("livestream" + m).width = ww;
+      	document.getElementById("livestream" + m).height = 240;
+
+        if (monitors[m] == -1) {
+          document.getElementById("container" + m).style.visibility = 'hidden';
+        }
+
+      }
+
+      intervalid = setInterval ("tick()", 250);
     }
 
     function tick() {
-    	refreshThumb(monitors[refreshID]);
+      if (zoomid == -1) {
+        refreshThumb(refreshID);
 
     	refreshID++;
     	if (refreshID >= monitors.length) {
     	  refreshID = 0;
+          if (intervalid != -1) {
+            clearInterval(intervalid);
+            intervalid = -1;
+            setInterval("tick()", 1500);
+          }
+          
     	}
+      } else {
+        refreshZoom();
+      }
+    }
+
+    function refreshZoom() {
+      if (zoomid != -1) {
+      	document.getElementById("zoomimg").src = 'full/' + monitors[zoomid] + '/' + Math.round(Math.random()*1000000);
+      }
     }
 
     function refreshThumb(num) {
-      document.getElementById("container" + num).style.backgroundColor = '#f3f3f3';
-      document.getElementById("livestream" + num).src = num + '/' + Math.round(Math.random()*1000000);
+
+      if (monitors[num] != -1) {
+    	document.getElementById("container" + num).style.backgroundColor = '#f3f3f3';
+      	document.getElementById("livestream" + num).src = monitors[num] + '/' + Math.round(Math.random()*1000000);
+      }
     }
 
     function image_click(num) {
+      document.getElementById("content").style.display = 'none';
+      document.getElementById("zoomimg").style.display = 'inline-block';
+      zoomid = num;
+      refreshZoom();
     }
+
+    function close_zoom() {
+      document.getElementById("content").style.display = 'inline-block';
+      document.getElementById("zoomimg").style.display = 'none';
+      zoomid = -1;
+
+    }
+
   </script>
   <style type="text/css">
     body { background-color: #2C2C29; color: #2C2C29; font-family: Arial; font-size: 11px; margin: 0; padding: 0; }
@@ -42,7 +104,25 @@
       margin: 0 0 0 0;
     }
 
+    .zoom {
+    }
+
+    .zoomimg {
+      padding: 2px;
+      display: block;
+      margin: auto;
+      height: 100%;
+      width: 100%;
+      object-fit: contain;
+
+    }
+
     content {
+      width: 100%;
+    }
+
+    .contentrow {
+      width: 100%;
     }
 
     .user {
@@ -92,6 +172,7 @@
 <div class="topbar">
   <div class="pagetitle">
     <h2>MakeIt Labs Live Cameras</h2>
+    <p>Click matrix image to zoom, click again to return.</p>
   </div>
   <div id="userinfo" class="user">
     <img src="{{userimage}}">
@@ -101,46 +182,117 @@
 
 <div id="wrapper">
 
+  <div id="zoom" class="zoom">
+    <A HREF="javascript:close_zoom()">
+      <img src="#" id="zoomimg" class="zoomimg"/>
+    </A>
+  </div>
+
   <div id="content">
-    <div>
-      <div id="container19" class="img16x9">
-	<A HREF="javascript:image_click(19)">
-	  <img id="livestream19" width="428" height="240" />
+    <div class="contentrow">
+      <div id="container0">
+	<A HREF="javascript:image_click(0)">
+	  <img src="#" id="livestream0"/>
 	</A>
       </div>
       
-      <div id="container20" class="img16x9">
-	<A HREF="javascript:image_click(20)">
-	  <img id="livestream20" width="428" height="240" />
+      <div id="container1">
+	<A HREF="javascript:image_click(1)">
+	  <img src="#" id="livestream1"/>
 	</A>
       </div>
 
-      <div id="container24" class="img4x3">
-	<A HREF="javascript:image_click(24)">
-	  <img id="livestream24" width="320" height="240" />
+      <div id="container2">
+	<A HREF="javascript:image_click(2)">
+	  <img src="#" id="livestream2"/>
+	</A>
+      </div>
+
+      <div id="container3">
+	<A HREF="javascript:image_click(3)">
+	  <img src="#" id="livestream3"/>
 	</A>
       </div>
     </div>
 
-    <div>
-      <div id="container21" class="img16x9">
-	<A HREF="javascript:image_click(21)">
-	  <img id="livestream21" width="428" height="240" />
+    <div class="contentrow">
+      <div id="container4">
+	<A HREF="javascript:image_click(4)">
+	  <img src="#" id="livestream4"/>
 	</A>
       </div>
       
-      <div id="container22" class="img16x9">
-	<A HREF="javascript:image_click(22)">
-	  <img id="livestream22" width="428" height="240" />
+      <div id="container5">
+	<A HREF="javascript:image_click(5)">
+	  <img src="#" id="livestream5"/>
 	</A>
       </div>
       
-      <div id="container23" class="img4x3">
-	<A HREF="javascript:image_click(23)">
-	  <img id="livestream23" width="320" height="240" />
+      <div id="container6">
+	<A HREF="javascript:image_click(6)">
+	  <img src="#" id="livestream6"/>
+	</A>
+      </div>
+
+      <div id="container7">
+	<A HREF="javascript:image_click(7)">
+	  <img src="#" id="livestream7"/>
 	</A>
       </div>
     </div>
+
+    <div class="contentrow">
+      <div id="container8">
+	<A HREF="javascript:image_click(8)">
+	  <img src="#" id="livestream8"/>
+	</A>
+      </div>
+      
+      <div id="container9">
+	<A HREF="javascript:image_click(9)">
+	  <img src="#" id="livestream9"/>
+	</A>
+      </div>
+      
+      <div id="container10">
+	<A HREF="javascript:image_click(10)">
+	  <img src="#" id="livestream10"/>
+	</A>
+      </div>
+
+      <div id="container11">
+	<A HREF="javascript:image_click(11)">
+	  <img src="#" id="livestream11"/>
+	</A>
+      </div>
+    </div>
+
+    <div class="contentrow">
+      <div id="container12">
+	<A HREF="javascript:image_click(12)">
+	  <img src="#" id="livestream12"/>
+	</A>
+      </div>
+      
+      <div id="container13">
+	<A HREF="javascript:image_click(13)">
+	  <img src="#" id="livestream13"/>
+	</A>
+      </div>
+      
+      <div id="container14">
+	<A HREF="javascript:image_click(14)">
+	  <img src="#" id="livestream14"/>
+	</A>
+      </div>
+
+      <div id="container15">
+	<A HREF="javascript:image_click(15)">
+	  <img src="#" id="livestream15"/>
+	</A>
+      </div>
+    </div>
+
   </div>
 </body>
 </html>
