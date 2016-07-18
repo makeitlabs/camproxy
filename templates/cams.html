@@ -109,7 +109,9 @@
       cyclemode = cb.checked;
 
       if (cyclemode) {
-         image_click(0);
+         if (zoomid == -1) {
+           image_click(0);
+         }
       } else {
          close_zoom();
       }
