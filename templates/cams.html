@@ -5,19 +5,22 @@
   <script type="text/javascript">
     var refreshID = 0;
 
-    var monitors = [ 20, 30, 32, -1,
-                     19, 21, 23, 24,
+    var monitors = [ 20, 30, 32, 33,
+                     19, 35, 23, 21,
                      22, 28, 26, 27,
-                     29, 31, 25, -1 ];
+                     29, 31, 25, 24 ];
 
     var monclass = [ 'img16x9', 'img16x9', 'img16x9', 'img4x3',
-                     'img16x9', 'img16x9', 'img4x3', 'img4x3',
+                     'img16x9', 'img4x3', 'img4x3', 'img16x9',
                      'img16x9', 'img4x3', 'img4x3', 'img4x3',
                      'img16x9', 'img16x9', 'img4x3', 'img4x3' ];
 
     var zoomid = -1;
 
     var intervalid = -1;
+
+    var cyclemode = false;
+    var cyclecount = 0;
 
     function pageLoad() {
       close_zoom();
@@ -39,7 +42,7 @@
 
       }
 
-      intervalid = setInterval ("tick()", 250);
+      intervalid = setInterval ("tick()", 1200);
     }
 
     function tick() {
@@ -52,11 +55,22 @@
           if (intervalid != -1) {
             clearInterval(intervalid);
             intervalid = -1;
-            setInterval("tick()", 1500);
+            setInterval("tick()", 1600);
           }
           
     	}
       } else {
+        if (cyclemode) {
+          cyclecount++;
+
+          if (cyclecount >= 5) {
+           cyclecount = 0;
+           zoomid++;
+      	    if (zoomid >= monitors.length) {
+              zoomid = 0;
+            }
+          }
+        }
         refreshZoom();
       }
     }
@@ -76,29 +90,42 @@
     }
 
     function image_click(num) {
-      document.getElementById("content").style.display = 'none';
-      document.getElementById("zoomimg").style.display = 'inline-block';
-      zoomid = num;
-      refreshZoom();
+        document.getElementById("content").style.display = 'none';
+        document.getElementById("zoomimg").style.display = 'inline-block';
+        zoomid = num;
+        refreshZoom();
     }
 
     function close_zoom() {
-      document.getElementById("content").style.display = 'inline-block';
-      document.getElementById("zoomimg").style.display = 'none';
-      zoomid = -1;
+      if (!cyclemode) {
+        document.getElementById("content").style.display = 'inline-block';
+        document.getElementById("zoomimg").style.display = 'none';
+        zoomid = -1;
+      } 
 
+    }
+
+    function handle_cycle_mode(cb) {
+      cyclemode = cb.checked;
+
+      if (cyclemode) {
+         image_click(0);
+      } else {
+         close_zoom();
+      }
     }
 
   </script>
   <style type="text/css">
     body { background-color: #2C2C29; color: #2C2C29; font-family: Arial; font-size: 11px; margin: 0; padding: 0; }
 
-    wrapper { width: 100%; height: 100%; margin: 0 auto; }
+    .wrapper { width: 100%; height: 100%; margin: 0 0; position: absolute; background-color: #ffffff;}
     #top { height:116px; margin: 0 0 0 5px; }
     #content { background-color: #fff; padding: 1em 0 1em 1em; font-size: 1.2em; }
 
     .topbar {
       height: 60;
+      width: 100%;
       background-color: #F3F3F3;
       padding: 2px;
       margin: 0 0 0 0;
@@ -172,15 +199,14 @@
 <div class="topbar">
   <div class="pagetitle">
     <h2>MakeIt Labs Live Cameras</h2>
-    <p>Click matrix image to zoom, click again to return.</p>
+    <p><input type="checkbox" onclick="handle_cycle_mode(this);">Full Screen Cycle Mode</p>
   </div>
   <div id="userinfo" class="user">
     <img src="{{userimage}}">
   </div>
-  
 </div>
 
-<div id="wrapper">
+<div class="wrapper">
 
   <div id="zoom" class="zoom">
     <A HREF="javascript:close_zoom()">
