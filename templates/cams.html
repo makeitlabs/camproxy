@@ -36,9 +36,7 @@
       	document.getElementById("livestream" + m).width = ww;
       	document.getElementById("livestream" + m).height = 240;
 
-        if (monitors[m] == -1) {
-          document.getElementById("container" + m).style.visibility = 'hidden';
-        }
+        document.getElementById("container" + m).style.visibility = 'hidden';
 
       }
 
@@ -84,6 +82,7 @@
     function refreshThumb(num) {
 
       if (monitors[num] != -1) {
+        document.getElementById("container" + num).style.visibility = 'visible';
       	document.getElementById("livestream" + num).src = monitors[num] + '/' + Math.round(Math.random()*1000000);
       }
     }
