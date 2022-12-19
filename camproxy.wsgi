@@ -1,7 +1,7 @@
 import sys
-import ConfigParser
+import configparser
 
-Config = ConfigParser.ConfigParser()
+Config = configparser.ConfigParser()
 Config.read('camproxy.ini')
 InstallPath = Config.get('General', 'InstallPath')
 

@@ -1,2 +1,4 @@
 *.pyc
 conf
+camproxy.ini
+.venv
