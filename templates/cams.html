@@ -5,15 +5,15 @@
   <script type="text/javascript">
     var refreshID = 0;
 
-    var monitors = [ 20, 30, 32, 33,
-                     19, 35, 23, 21,
-                     22, 28, 26, 27,
-                     29, 31, 25, 24 ];
+    var monitors = [ '3ac5955a-95fa-1fc1-b489-bf8447348b5d', '78f65ad0-4dc0-a212-d596-04dd238caa3d', 'f7ae3f80-3bd9-70ef-9905-adfbb266c8aa', '54bcf318-c7a9-29a4-4e44-616ecd7625a2',
+                     '4241f611-31ee-56f0-ad15-045c9ffe2fdf', '76a68c40-6c5e-7b1c-bd15-6cc7644ca73d', '85ca49e1-3b0b-aabb-3b92-d448c703d195', 'ee41017e-b1cf-4839-7c0c-118dbbe7f32a',
+                     'dc62c8cf-e5e0-0e3f-0947-26e3c8335e05', '66cd5cdb-eb3a-e529-2aa7-6b4eaf5b3428', 'd28482fb-d13f-94fc-d76b-45e026fb372c', 'e085dd0e-7c3e-9957-a164-764eb12f3e60',
+                     '656ffcab-af75-7bc2-a0b0-957ab2d4b9ab', 'b3f2145a-6695-1250-6b3a-566e29687c5c', '343bdf41-7d6f-5947-0ba6-0294a819269a', '3f108a20-c8f4-63ef-8cc2-6718ca2848d5' ];
 
-    var monclass = [ 'img16x9', 'img16x9', 'img16x9', 'img4x3',
-                     'img16x9', 'img4x3', 'img4x3', 'img16x9',
-                     'img16x9', 'img4x3', 'img4x3', 'img4x3',
-                     'img16x9', 'img16x9', 'img4x3', 'img4x3' ];
+    var monclass = [ 'img4x3', 'img16x9', 'img16x9', 'img4x3',
+                     'img16x9', 'img16x9', 'img4x3', 'img16x9',
+                     'img16x9', 'img16x9', 'img16x9', 'img16x9',
+                     'img16x9', 'img16x9', 'img16x9', 'img16x9' ];
 
     var zoomid = -1;
 
@@ -124,9 +124,10 @@
     .content { background-color: #222222; position: absolute; padding: 5px; width: 100%; height: calc(100% - 80px); }
 
     .topbar {
-      height: 60px;
+      height: 70px;
       width: 100%;
-      background-color: #F3F3F3;
+    background-color: #111111;
+    color: #ffffff;
       padding: 2px;
       margin: 0 0 0 0;
     }
@@ -153,10 +154,12 @@
     }
 
     .user {
-      background-color: #E0E0F0;
+      color: #000000;
+      background-color: #F0F0F0;
       border: 4px solid #DDD;
       padding: 2px;
       float: right;
+      font-size: 16px;
     }
 
     .pagetitle {
@@ -204,7 +207,8 @@
     <p><input type="checkbox" onclick="handle_cycle_mode(this);">Full Screen Cycle Mode</p>
   </div>
   <div id="userinfo" class="user">
-    <img src="{{userimage}}">
+    {{username}}
+    <img src="{{userimage}}" height="50px">
   </div>
 </div>
 
