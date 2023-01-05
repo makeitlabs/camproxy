@@ -3,11 +3,11 @@ import { BACKEND_URL } from "../App";
 import Axios from "axios";
 import { useNavigate } from "react-router";
 import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 
-import '@fontsource/roboto/300.css';
 
-function Thumb({ id }) {
-    const [setAuth] = useState(null);
+function Thumb({ id, name }) {
+    const [auth, setAuth] = useState(null);
     const [thumb, setThumb] = useState(null);
     const nav = useNavigate()
 
@@ -40,24 +40,33 @@ function Thumb({ id }) {
         return () => clearInterval(timer);
     }, [nav, id, setAuth]);
 
-
-    const divStyle = {
-        position: 'relative',
-        left: '0%',
-        top: -35,
-        opacity: '90%',
-        paddingLeft: '5px',
-        
-    };
-    var d = new Date();
+    var now = new Date().toLocaleString();
 
     return (
-        <div style={{ height: 480 }}>
-            <img src={thumb} alt="" height="480"/>
-            <div style={divStyle}>
-                <Typography variant="h5" color="#ffffff">{d.toLocaleString()}</Typography>
-            </div>
-        </div>
+        <Box>
+            <img src={thumb} alt=""/>
+            <Box sx={{
+                position: 'relative',
+                bottom: 40,
+                left: 0,
+                width: '100%',
+                marginLeft: 2,
+                textShadow: '1px 3px 3px black'
+            }}>
+                <Typography variant="h8" color="white">{name}</Typography>
+
+                <Box sx={{
+                    position: 'relative',
+                    bottom: 460,
+                    right: 0,
+                    width: '100%',
+                    textShadow: '1px 2px 2px black'
+                }}>
+                    <Typography variant="h8" color="white">{now}</Typography>
+                </Box>
+
+            </Box>
+        </Box>
     );
 
 }

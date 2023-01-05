@@ -12,7 +12,6 @@ import Container from '@mui/material/Container';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
-
 import Drawer from '@mui/material/Drawer';
 import CssBaseline from '@mui/material/CssBaseline';
 import List from '@mui/material/List';
@@ -25,7 +24,7 @@ import Thumb from "./Thumb";
 
 import '@fontsource/roboto/300.css';
 
-const pages = ['Cameras', 'Tools', 'Alarm', 'Logs'];
+const pages = ['Cameras', 'Logs'];
 
 function Home() {
 
@@ -37,7 +36,21 @@ function Home() {
 	const drawerWidth = 240;
 
 
+	const lookupDevice = (id) => {
+		for (var i=0; i<devices.length; i++) {
+			if (devices[i].id === id)
+				return devices[i].name;
+		}
+		return "";
+	}
+
 	useEffect(() => {
+		if (localStorage.getItem("selectedDevice") == null) {
+			setSelectedDevice(null);
+		} else {
+			setSelectedDevice(localStorage.getItem("selectedDevice"));
+		}
+
 		if (localStorage.getItem('JWT') == null) {
 			return nav("/login")
 		}
@@ -66,6 +79,7 @@ function Home() {
 
 	const handleDeviceClick = (event, id) => {
 		setSelectedDevice(id);
+		localStorage.setItem("selectedDevice", id);
 	}
 
 	return (
@@ -160,7 +174,7 @@ function Home() {
 			</Box>
 			<Box component="main" sx={{ p: 3 }}>
 				<Toolbar />
-				<Thumb id={selectedDevice}></Thumb>
+				<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)}></Thumb>
 			</Box>
 
 		</Box>
