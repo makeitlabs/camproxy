@@ -1,0 +1,6 @@
+google-auth-oauthlib
+google-auth
+flask
+pyjwt
+python-dotenv
+flask_cors
