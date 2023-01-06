@@ -19,22 +19,25 @@ import Divider from '@mui/material/Divider';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
+import Grid from '@mui/material/Grid';
 
 import Thumb from "./Thumb";
 
 import '@fontsource/roboto/300.css';
 
-const pages = ['Cameras', 'Logs'];
+const pages = ['Single Camera', 'Multi Camera'];
 
 function Home() {
 
 	const [auth, setAuth] = useState(null);
 	const [devices, setDevices] = useState({});
+	const [areasToIds, setAreasToIds] = useState({});
 	const [selectedDevice, setSelectedDevice] = useState(null);
+	const [selectedArea, setSelectedArea] = useState(null);
+	const [selectedPage, setSelectedPage] = useState('Single Camera')
 	const nav = useNavigate()
 
 	const drawerWidth = 240;
-
 
 	const lookupDevice = (id) => {
 		for (var i=0; i<devices.length; i++) {
@@ -44,12 +47,31 @@ function Home() {
 		return "";
 	}
 
-	useEffect(() => {
-		if (localStorage.getItem("selectedDevice") == null) {
-			setSelectedDevice(null);
-		} else {
-			setSelectedDevice(localStorage.getItem("selectedDevice"));
+	const getSelectedAreaIds = () => {
+		if (areasToIds.hasOwnProperty(selectedArea)) {
+			return areasToIds[selectedArea];
 		}
+		return [];
+	}
+
+	const setPage = (page) => {
+		console.log("setPage = " + page);
+		setSelectedPage(page);
+		localStorage.setItem("selectedPage", page);
+	}
+
+	let getLocalItem = (name, def) => {
+		let val = localStorage.getItem(name);
+		if (val === null || val === undefined)
+			return def;
+		else return val;
+	}
+
+	useEffect(() => {
+		
+		setSelectedArea(getLocalItem("selectedArea", selectedArea))
+		setSelectedDevice(getLocalItem("selectedDevice", selectedDevice))
+		setSelectedPage(getLocalItem("selectedPage", selectedPage))
 
 		if (localStorage.getItem('JWT') == null) {
 			return nav("/login")
@@ -66,7 +88,25 @@ function Home() {
 			headers: { "Authorization": `Bearer ${localStorage.getItem('JWT')}` }
 		})
 			.then((res) => {
-				setDevices(res.data)
+				const devs = res.data
+				setDevices(devs)
+
+				let areas = {};
+				for (var i=0; i<devs.length; i++) {
+					let n = devs[i].name;
+					let s = n.split('-');
+					if (s.length >= 2) {
+						let area = s[0];
+						let idlist = [];
+						if (areas.hasOwnProperty(area)) {
+							idlist = areas[area];
+						}
+						idlist.push(devs[i].id);
+						areas[area] = idlist;
+					}
+				}
+				setAreasToIds(areas);
+				console.log(areas);
 			})
 			.catch((err) => console.log(err));
 
@@ -80,6 +120,18 @@ function Home() {
 	const handleDeviceClick = (event, id) => {
 		setSelectedDevice(id);
 		localStorage.setItem("selectedDevice", id);
+	}
+
+	const handleAreaClick = (event, area) => {
+		setSelectedArea(area);
+		localStorage.setItem("selectedArea", area);
+	}
+
+	const handleMultiClick = (event, id) => {
+		setSelectedDevice(id);
+		setSelectedPage('Single Camera');
+		console.log("click id=" + id) 
+		
 	}
 
 	return (
@@ -111,6 +163,7 @@ function Home() {
 									<Button
 										key={page}
 										sx={{ my: 2, color: 'white', display: 'block' }}
+										onClick={ () => { setPage(page) } }
 									>
 										{page}
 									</Button>
@@ -155,27 +208,61 @@ function Home() {
 					anchor="left"
 
 				>
+				{ selectedPage === "Single Camera" &&
 					<List dense>
-
 						{
 							Object.values(devices).map((item) => (
 
-								<ListItem key={item.id} disablePadding>
+								<ListItem key={item.id} disablePadding selected={ selectedDevice === item.id}>
 									<ListItemButton onClick={(event) => handleDeviceClick(event, item.id)} >
 										<ListItemText primary={item.name} />
 									</ListItemButton>
 								</ListItem>
-							))}
+							))
+						}
 
 					</List>
-					<Divider />
+				}
 
+				{ selectedPage === "Multi Camera" &&
+					<List>
+						{
+							Object.keys(areasToIds).map((item) => (
+
+								<ListItem key={item} disablePadding selected={ selectedArea === item }>
+									<ListItemButton onClick={(event) => handleAreaClick(event, item)} >
+										<ListItemText primary={item} />
+									</ListItemButton>
+								</ListItem>
+							))
+						}
+
+					</List>
+				}				
+				<Divider />
 				</Drawer>
 			</Box>
-			<Box component="main" sx={{ p: 3 }}>
-				<Toolbar />
-				<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)}></Thumb>
-			</Box>
+			{ selectedPage === "Single Camera" &&
+				<Box component="main" sx={{ p: 3 }}>
+					<Toolbar />
+					<Thumb id={selectedDevice} name={lookupDevice(selectedDevice) } height="720" interval="1500"></Thumb>
+				</Box>
+			}	
+			{ selectedPage === "Multi Camera" &&
+				<Box component="main" >
+					<Toolbar />
+					<Grid container direction="row" alignItems="center" rowSpacing="1px" columnSpacing="1px" >
+							{
+								Object.values(getSelectedAreaIds(selectedArea)).map((item) => (
+									<Grid item sx={{height: 201}}>
+										<Thumb id={item} name={lookupDevice(item) } height="200" interval="3000" hideTime clickCallback={handleMultiClick}></Thumb>
+									</Grid>
+								))
+							}
+					</Grid>
+
+				</Box>
+			}	
 
 		</Box>
 	);
