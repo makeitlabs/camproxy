@@ -56,7 +56,7 @@ def login_required(f):
             else:
                 return f()
         else:
-            return abort(403)
+            return abort(401)
     return wrapper
 
 def Generate_JWT(payload):
@@ -91,7 +91,7 @@ def callback():
         return redirect(f"/login_error")
     
 
-    return redirect(f"{FRONTEND_URL}?jwt={jwt_token}")
+    return redirect(f"{FRONTEND_URL}/?jwt={jwt_token}")
     """ return Response(
         response=json.dumps({'JWT':jwt_token}),
         status=200,
@@ -122,9 +122,9 @@ def logout():
     )
 
 
-@app.route("/home", endpoint='home_page_user')
+@app.route("/home", endpoint='home')
 @login_required
-def home_page_user():
+def home():
     encoded_jwt=request.headers.get("Authorization").split("Bearer ")[1]
     try:
         decoded_jwt=jwt.decode(encoded_jwt, app.secret_key, algorithms=[algorithm,])
