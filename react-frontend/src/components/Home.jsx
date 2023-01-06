@@ -15,12 +15,14 @@ import Tooltip from '@mui/material/Tooltip';
 import Drawer from '@mui/material/Drawer';
 import CssBaseline from '@mui/material/CssBaseline';
 import List from '@mui/material/List';
-import Divider from '@mui/material/Divider';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import ListSubheader from "@mui/material/ListSubheader";
 import Grid from '@mui/material/Grid';
-
+import CameraIcon from '@mui/icons-material/VideoCameraFrontOutlined';
+import AreaIcon from '@mui/icons-material/Handyman';
 import Thumb from "./Thumb";
 
 import '@fontsource/roboto/300.css';
@@ -55,7 +57,6 @@ function Home() {
 	}
 
 	const setPage = (page) => {
-		console.log("setPage = " + page);
 		setSelectedPage(page);
 		localStorage.setItem("selectedPage", page);
 	}
@@ -79,7 +80,7 @@ function Home() {
 		else {
 			Axios.get(`${BACKEND_URL}/home`, { headers: { "Authorization": `Bearer ${localStorage.getItem('JWT')}` } })
 				.then((res) => {
-					setAuth(res)
+					setAuth(res.data)
 				})
 				.catch((err) => console.log(err));
 		}
@@ -106,7 +107,6 @@ function Home() {
 					}
 				}
 				setAreasToIds(areas);
-				console.log(areas);
 			})
 			.catch((err) => console.log(err));
 
@@ -130,8 +130,6 @@ function Home() {
 	const handleMultiClick = (event, id) => {
 		setSelectedDevice(id);
 		setSelectedPage('Single Camera');
-		console.log("click id=" + id) 
-		
 	}
 
 	return (
@@ -162,7 +160,7 @@ function Home() {
 								{pages.map((page) => (
 									<Button
 										key={page}
-										sx={{ my: 2, color: 'white', display: 'block' }}
+										sx={{ color: 'white' }}
 										onClick={ () => { setPage(page) } }
 									>
 										{page}
@@ -206,40 +204,60 @@ function Home() {
 					}}
 					variant="permanent"
 					anchor="left"
-
 				>
 				{ selectedPage === "Single Camera" &&
-					<List dense>
-						{
-							Object.values(devices).map((item) => (
+					<Box>
+						<Typography variant="button" sx={{ marginLeft: 2, fontWeight: 'bold', color: 'blue' }}>Available Cameras</Typography>
+						<List dense>
+							{
+								/*
+								Object.values(devices).map((item) => (
+									<ListItem key={item.id} disablePadding selected={ selectedDevice === item.id}>
+										<ListItemButton onClick={(event) => handleDeviceClick(event, item.id)} >
+											<ListItemIcon sx={{minWidth: '12px', paddingRight: '2px'}}><CameraIcon/></ListItemIcon>
+											<ListItemText primary={item.name.split(' - ')[1]} secondary={item.name.split(' - ')[0]} />
+										</ListItemButton>
+									</ListItem>
+								))
+								*/
+								Object.keys(areasToIds).map((item) => (
+									<>
+									<ListSubheader>{item}</ListSubheader>
+									{areasToIds[item].map( (dev) => (
+										<ListItem key={item} disablePadding selected={ selectedDevice === dev}>
+											<ListItemButton onClick={(event) => handleDeviceClick(event, dev)} >
+											<ListItemIcon sx={{minWidth: '12px', paddingRight: '2px', opacity: '50%'}}><CameraIcon/></ListItemIcon>
+												<ListItemText primary={lookupDevice(dev).split(' - ')[1]}/>
+											</ListItemButton>
+										</ListItem>
+									))}
+									</>
+								))
 
-								<ListItem key={item.id} disablePadding selected={ selectedDevice === item.id}>
-									<ListItemButton onClick={(event) => handleDeviceClick(event, item.id)} >
-										<ListItemText primary={item.name} />
-									</ListItemButton>
-								</ListItem>
-							))
-						}
+							}
 
-					</List>
+						</List>
+					</Box>
 				}
 
 				{ selectedPage === "Multi Camera" &&
-					<List>
-						{
-							Object.keys(areasToIds).map((item) => (
+					<Box>
+						<Typography variant="button" sx={{ marginLeft: 2, fontWeight: 'bold', color: 'blue' }}>Available Areas</Typography>
+						<List>
+							{
+								Object.keys(areasToIds).map((item) => (
+									<ListItem key={item} disablePadding selected={ selectedArea === item }>
+										<ListItemButton onClick={(event) => handleAreaClick(event, item)} >
+										<ListItemIcon><AreaIcon/></ListItemIcon>
+											<ListItemText primary={item} secondary={areasToIds[item].length + " cameras"}/>
+										</ListItemButton>
+									</ListItem>
+								))
+							}
 
-								<ListItem key={item} disablePadding selected={ selectedArea === item }>
-									<ListItemButton onClick={(event) => handleAreaClick(event, item)} >
-										<ListItemText primary={item} />
-									</ListItemButton>
-								</ListItem>
-							))
-						}
-
-					</List>
+						</List>
+					</Box>
 				}				
-				<Divider />
 				</Drawer>
 			</Box>
 			{ selectedPage === "Single Camera" &&
@@ -249,12 +267,12 @@ function Home() {
 				</Box>
 			}	
 			{ selectedPage === "Multi Camera" &&
-				<Box component="main" >
+				<Box component="main" sx={{ backgroundColor: '#333333', paddingBottom: "20px"}}>
 					<Toolbar />
-					<Grid container direction="row" alignItems="center" rowSpacing="1px" columnSpacing="1px" >
+					<Grid container direction="row" alignItems="flex-start" justifyItems="flex-start" rowSpacing="4px" columnSpacing="4px" >
 							{
 								Object.values(getSelectedAreaIds(selectedArea)).map((item) => (
-									<Grid item sx={{height: 201}}>
+									<Grid item sx={{height: 201, minWidth: 380}}>
 										<Thumb id={item} name={lookupDevice(item) } height="200" interval="3000" hideTime clickCallback={handleMultiClick}></Thumb>
 									</Grid>
 								))

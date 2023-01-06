@@ -26,6 +26,8 @@ function Thumb({ id, name, height, interval, hideTime, clickCallback }) {
 
     useEffect(() => {
         getThumb(id);
+
+        /*
 		if (localStorage.getItem('JWT') == null) {
 			return nav("/login")
 		}
@@ -36,6 +38,8 @@ function Thumb({ id, name, height, interval, hideTime, clickCallback }) {
 				})
 				.catch((err) => console.log(err));
 		}
+        */
+
         const timer = setInterval(() => {
             getThumb(id);
         }, interval);
@@ -45,7 +49,7 @@ function Thumb({ id, name, height, interval, hideTime, clickCallback }) {
     var now = new Date().toLocaleString();
 
     return (
-        <Box >
+        <Box>
             <Button onClick={ (event) => { if (clickCallback !== undefined) { clickCallback(event, id); console.log(id) }} }><img src={thumb} alt="" /></Button>
             <Box sx={{
                 position: 'relative',

@@ -4,9 +4,7 @@ import LoginError from "./components/LoginError";
 import Home from "./components/Home";
 import Axios from "axios";
 import { Routes, Route, useNavigate } from "react-router";
-import Alert from '@mui/joy/Alert';
 import '@fontsource/public-sans';
-import { CssVarsProvider } from '@mui/joy/styles';
 
 export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -42,15 +40,11 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login login={handleClick}></Login>} />
       <Route path="/login_error" element={<LoginError></LoginError>} />
-      <Route path="/home" element={<Home></Home>} />
+      <Route path="/home" element={<Home/>} />
 
-      <Route path="*" element={<NoMatch />} />
+      <Route path="*" element={<Login login={handleClick}></Login>} />
     </Routes>
   );
-}
-
-let NoMatch = () => {
-  return <CssVarsProvider><Alert variant="solid" size="lg" color="danger">URL not found.</Alert></CssVarsProvider>
 }
 
 export default App;
