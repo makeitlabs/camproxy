@@ -128,9 +128,80 @@ function Home() {
 	}
 
 	const handleMultiClick = (event, id) => {
+		// jump to single view of this camera
 		setSelectedDevice(id);
-		setSelectedPage('Single Camera');
+		localStorage.setItem("selectedDevice", id);
+		setPage('Single Camera');
 	}
+
+	const handleSingleClick = (event, id) => {
+		// find the area that contains this camera and show multi-view
+		
+		for (const area in areasToIds) {
+			console.log(area);
+			const ids = areasToIds[area];
+			console.log("looking for " + id);
+			console.log(ids);
+			if (ids.includes(id)) {
+				console.log("found");
+				setSelectedArea(area);
+				localStorage.setItem("selectedArea", area);
+				setPage('Multi Camera');
+				return;
+			}
+		}
+
+	}
+
+	const drawerContents = (
+		<div>
+			{ selectedPage === "Single Camera" &&
+				<Box>
+					<Typography variant="button" sx={{ marginLeft: 2, fontWeight: 'bold', color: 'blue' }}>Available Cameras</Typography>
+					<List dense>
+						{
+							Object.keys(areasToIds).map((item) => (
+								<>
+								<ListSubheader sx={{color: 'green', fontWeight: 'bold', backgroundColor: '#eeeeee' }}>{item}</ListSubheader>
+								{areasToIds[item].map( (dev) => (
+									<ListItem key={dev} disablePadding selected={ selectedDevice === dev}>
+										<ListItemButton onClick={(event) => handleDeviceClick(event, dev)} >
+										<ListItemIcon sx={{minWidth: '12px', paddingRight: '2px', opacity: '50%'}}><CameraIcon/></ListItemIcon>
+											<ListItemText primary={lookupDevice(dev).split(' - ')[1]}/>
+										</ListItemButton>
+									</ListItem>
+								))}
+								</>
+							))
+
+						}
+
+					</List>
+				</Box>
+			}
+
+			{ selectedPage === "Multi Camera" &&
+				<Box>
+					<Typography variant="button" sx={{ marginLeft: 2, fontWeight: 'bold', color: 'blue' }}>Available Areas</Typography>
+					<List>
+						{
+							Object.keys(areasToIds).map((item) => (
+								<ListItem key={item} disablePadding selected={ selectedArea === item }>
+									<ListItemButton onClick={(event) => handleAreaClick(event, item)} >
+									<ListItemIcon><AreaIcon/></ListItemIcon>
+										<ListItemText primary={item} secondary={areasToIds[item].length + " cameras"}/>
+									</ListItemButton>
+								</ListItem>
+							))
+						}
+
+					</List>
+				</Box>
+			}				
+		</div>
+	)
+
+	const container = window !== undefined ? () => window().document.body : undefined;
 
 	return (
 		<Box sx={{ display: 'flex' }}>
@@ -205,83 +276,29 @@ function Home() {
 					variant="permanent"
 					anchor="left"
 				>
-				{ selectedPage === "Single Camera" &&
-					<Box>
-						<Typography variant="button" sx={{ marginLeft: 2, fontWeight: 'bold', color: 'blue' }}>Available Cameras</Typography>
-						<List dense>
-							{
-								/*
-								Object.values(devices).map((item) => (
-									<ListItem key={item.id} disablePadding selected={ selectedDevice === item.id}>
-										<ListItemButton onClick={(event) => handleDeviceClick(event, item.id)} >
-											<ListItemIcon sx={{minWidth: '12px', paddingRight: '2px'}}><CameraIcon/></ListItemIcon>
-											<ListItemText primary={item.name.split(' - ')[1]} secondary={item.name.split(' - ')[0]} />
-										</ListItemButton>
-									</ListItem>
-								))
-								*/
-								Object.keys(areasToIds).map((item) => (
-									<>
-									<ListSubheader>{item}</ListSubheader>
-									{areasToIds[item].map( (dev) => (
-										<ListItem key={item} disablePadding selected={ selectedDevice === dev}>
-											<ListItemButton onClick={(event) => handleDeviceClick(event, dev)} >
-											<ListItemIcon sx={{minWidth: '12px', paddingRight: '2px', opacity: '50%'}}><CameraIcon/></ListItemIcon>
-												<ListItemText primary={lookupDevice(dev).split(' - ')[1]}/>
-											</ListItemButton>
-										</ListItem>
-									))}
-									</>
-								))
-
-							}
-
-						</List>
-					</Box>
-				}
-
-				{ selectedPage === "Multi Camera" &&
-					<Box>
-						<Typography variant="button" sx={{ marginLeft: 2, fontWeight: 'bold', color: 'blue' }}>Available Areas</Typography>
-						<List>
-							{
-								Object.keys(areasToIds).map((item) => (
-									<ListItem key={item} disablePadding selected={ selectedArea === item }>
-										<ListItemButton onClick={(event) => handleAreaClick(event, item)} >
-										<ListItemIcon><AreaIcon/></ListItemIcon>
-											<ListItemText primary={item} secondary={areasToIds[item].length + " cameras"}/>
-										</ListItemButton>
-									</ListItem>
-								))
-							}
-
-						</List>
-					</Box>
-				}				
+					{drawerContents}
 				</Drawer>
 			</Box>
 			{ selectedPage === "Single Camera" &&
 				<Box component="main" sx={{ p: 3 }}>
 					<Toolbar />
-					<Thumb id={selectedDevice} name={lookupDevice(selectedDevice) } height="720" interval="1500"></Thumb>
+					<Thumb id={selectedDevice} name={lookupDevice(selectedDevice) } height="720" interval="1500" clickCallback={handleSingleClick}></Thumb>
 				</Box>
 			}	
 			{ selectedPage === "Multi Camera" &&
-				<Box component="main" sx={{ backgroundColor: '#333333', paddingBottom: "20px"}}>
+				<Box component="main">
 					<Toolbar />
 					<Grid container direction="row" alignItems="flex-start" justifyItems="flex-start" rowSpacing="4px" columnSpacing="4px" >
 							{
 								Object.values(getSelectedAreaIds(selectedArea)).map((item) => (
-									<Grid item sx={{height: 201, minWidth: 380}}>
-										<Thumb id={item} name={lookupDevice(item) } height="200" interval="3000" hideTime clickCallback={handleMultiClick}></Thumb>
+									<Grid item >
+										<Thumb id={item} name={lookupDevice(item) } height="220" interval="3000" hideTime clickCallback={handleMultiClick}></Thumb>
 									</Grid>
 								))
 							}
 					</Grid>
-
 				</Box>
 			}	
-
 		</Box>
 	);
 }
