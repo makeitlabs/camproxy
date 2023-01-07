@@ -25,14 +25,11 @@ import CameraIcon from '@mui/icons-material/CropOriginalSharp';
 import AreaIcon from '@mui/icons-material/GridOnSharp';
 import Thumb from "./Thumb";
 import '@fontsource/roboto/300.css';
+import { CircularProgress } from '@mui/material';
 
 
-interface Props {
-	window?: () => Window;
-}
-
-const PAGE_SINGLE_CAM = 'Single';
-const PAGE_MULTI_CAM = 'Multi'
+const PAGE_SINGLE_CAM = 'Single Camera';
+const PAGE_MULTI_CAM = 'Multi Camera'
 
 function Home(props: Props) {
 	const { window } = props;
@@ -192,44 +189,60 @@ function Home(props: Props) {
 			{selectedPage === PAGE_SINGLE_CAM &&
 				<Box>
 					<Typography variant="button" sx={{ marginLeft: 2, fontWeight: 'bold', color: 'blue' }}>Available Cameras</Typography>
-					<List dense>
-						{
-							Object.keys(areasToIds).map((item) => (
-								<>
-									<ListSubheader sx={{ color: 'green', fontWeight: 'bold', backgroundColor: '#eeeeee' }}>{item}</ListSubheader>
-									{areasToIds[item].map((dev) => (
-										<ListItem key={dev} disablePadding selected={selectedDevice === dev}>
-											<ListItemButton onClick={(event) => handleDeviceClick(event, dev)} >
-												<ListItemIcon sx={{ minWidth: '12px', paddingRight: '2px', opacity: '50%' }}><CameraIcon /></ListItemIcon>
-												<ListItemText primary={lookupDevice(dev).split(' - ')[1]} />
-											</ListItemButton>
-										</ListItem>
-									))}
-								</>
-							))
+					{ Object.keys(areasToIds).length > 0 &&
+						<List dense>
+							{
+								Object.keys(areasToIds).map((item) => (
+									<>
+										<ListSubheader sx={{ color: 'green', fontWeight: 'bold', backgroundColor: '#eeeeee' }}>{item}</ListSubheader>
+										{areasToIds[item].map((dev) => (
+											<ListItem key={dev} disablePadding selected={selectedDevice === dev}>
+												<ListItemButton onClick={(event) => handleDeviceClick(event, dev)} >
+													<ListItemIcon sx={{ minWidth: '12px', paddingRight: '2px', opacity: '50%' }}><CameraIcon /></ListItemIcon>
+													<ListItemText primary={lookupDevice(dev).split(' - ')[1]} />
+												</ListItemButton>
+											</ListItem>
+										))}
+									</>
+								))
 
-						}
+							}
 
-					</List>
+						</List>
+					}
+					{ Object.keys(areasToIds).length === 0 &&
+						<List dense>
+							<ListItem><CircularProgress disableShrink/></ListItem>
+							<ListItem>Loading...</ListItem>
+						</List>
+					}
 				</Box>
 			}
 
 			{selectedPage === PAGE_MULTI_CAM &&
 				<Box>
 					<Typography variant="button" sx={{ marginLeft: 2, fontWeight: 'bold', color: 'blue' }}>Available Areas</Typography>
-					<List>
-						{
-							Object.keys(areasToIds).map((item) => (
-								<ListItem key={item} disablePadding selected={selectedArea === item}>
-									<ListItemButton onClick={(event) => handleAreaClick(event, item)} >
-										<ListItemIcon><AreaIcon /></ListItemIcon>
-										<ListItemText primary={item} secondary={areasToIds[item].length + " cameras"} />
-									</ListItemButton>
-								</ListItem>
-							))
-						}
+					{ Object.keys(areasToIds).length > 0 &&
+						<List>
+							{
+								Object.keys(areasToIds).map((item) => (
+									<ListItem key={item} disablePadding selected={selectedArea === item}>
+										<ListItemButton onClick={(event) => handleAreaClick(event, item)} >
+											<ListItemIcon><AreaIcon /></ListItemIcon>
+											<ListItemText primary={item} secondary={areasToIds[item].length + " cameras"} />
+										</ListItemButton>
+									</ListItem>
+								))
+							}
 
-					</List>
+						</List>
+					}
+					{ Object.keys(areasToIds).length === 0 &&
+						<List dense>
+							<ListItem><CircularProgress disableShrink/></ListItem>
+							<ListItem>Loading...</ListItem>
+						</List>
+					}
 				</Box>
 			}
 		</div>
@@ -337,20 +350,20 @@ function Home(props: Props) {
 
 			{selectedPage === PAGE_SINGLE_CAM &&
 				<div>
-					<Box component="main" sx={{ flexGrow: 1 }}>
+					<Box component="main" sx={{ flexGrow: 1, p: 1 }}>
 						<Toolbar />
-						<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)} width={mainWidth - 20} interval="1500" clickCallback={handleSingleClick} user={auth ? auth.email : ""} ></Thumb>
+						<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)} width={mainWidth - 20} interval="1500" clickCallback={handleSingleClick}  ></Thumb>
 					</Box>
 				</div>
 			}
 			{selectedPage === PAGE_MULTI_CAM &&
 				<Box component="main" sx={{ flexGrow: 1 }}>
 					<Toolbar />
-					<Grid container alignItems="left" justifyContent="left" rowSpacing="1px" columnSpacing="1px" sx={{width: mainWidth - 20}}>
+					<Grid container alignItems="left" justifyContent="left" rowSpacing="1px" columnSpacing="1px" sx={{ p: 1 }}>
 						{
 							Object.values(getSelectedAreaIds(selectedArea)).map((item) => (
 								<Grid item sx={{ minWidth: 320, justifyContent: 'center' }}>
-									<Thumb id={item} name={lookupDevice(item)} width="320" interval="3000" hideTime clickCallback={handleMultiClick} user={auth ? auth.email : ""}></Thumb>
+									<Thumb id={item} name={lookupDevice(item)} width="320" interval="3000" smallThumb clickCallback={handleMultiClick} ></Thumb>
 								</Grid>
 							))
 						}
