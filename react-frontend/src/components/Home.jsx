@@ -31,7 +31,7 @@ import { CircularProgress } from '@mui/material';
 const PAGE_SINGLE_CAM = 'Single Camera';
 const PAGE_MULTI_CAM = 'Multi Camera'
 
-function Home(props: Props) {
+function Home(props) {
 	const { window } = props;
 	const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -293,8 +293,12 @@ function Home(props: Props) {
 						</Typography>
 
 						<Box sx={{ flexGrow: 1, display: { md: 'flex' } }}>
-							<IconButton key={PAGE_SINGLE_CAM} sx={{color:'white'}} onClick={() => {setPage(PAGE_SINGLE_CAM)}}><CameraIcon/></IconButton>
-							<IconButton key={PAGE_MULTI_CAM} sx={{color:'white'}} onClick={() => {setPage(PAGE_MULTI_CAM)}}><AreaIcon/></IconButton>
+							<IconButton key={PAGE_SINGLE_CAM}
+										sx={{ color:'white', backgroundColor: (selectedPage === PAGE_SINGLE_CAM ? 'orange' : 'transparent') }} 
+										onClick={() => {setPage(PAGE_SINGLE_CAM)}}><CameraIcon/></IconButton>
+							<IconButton  key={PAGE_MULTI_CAM}
+										sx={{ color:'white', backgroundColor: (selectedPage === PAGE_MULTI_CAM ? 'orange' : 'transparent') }} 
+										onClick={() => {setPage(PAGE_MULTI_CAM)}}><AreaIcon/></IconButton>
 						</Box>
 
 						<Box sx={{ flexGrow: 0, display: { xs: 'none'}, marginRight: "10px" }}>
@@ -363,7 +367,7 @@ function Home(props: Props) {
 						{
 							Object.values(getSelectedAreaIds(selectedArea)).map((item) => (
 								<Grid item sx={{ minWidth: 320, justifyContent: 'center' }}>
-									<Thumb id={item} name={lookupDevice(item)} width="320" interval="3000" smallThumb clickCallback={handleMultiClick} ></Thumb>
+									<Thumb id={item} name={lookupDevice(item)} width="320" interval="3000" smallThumb clickCallback={handleMultiClick} user={auth ? auth.email : ""}></Thumb>
 								</Grid>
 							))
 						}
