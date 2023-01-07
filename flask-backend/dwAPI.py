@@ -75,8 +75,12 @@ class dwAPI:
     def devices(self):
         return self._devices
     
-    def get_thumbnail(self, device_id, height):
-        r = self.api_get(f'/ec2/cameraThumbnail?cameraId={device_id}&height={height}&imageFormat=png')
+    def get_thumbnail(self, device_id, height=None, width=None):
+        if height and height.isnumeric():
+            r = self.api_get(f'/ec2/cameraThumbnail?cameraId={device_id}&height={height}&imageFormat=png')
+        elif width and width.isnumeric():
+            height = int(9 * int(width) / 16);
+            r = self.api_get(f'/ec2/cameraThumbnail?cameraId={device_id}&height={height}&width={width}&imageFormat=png')
         return r.content   
     
 if __name__ == "__main__":

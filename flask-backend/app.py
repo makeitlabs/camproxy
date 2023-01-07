@@ -144,10 +144,14 @@ def home():
 @login_required
 def thumbnail():
     camera_id = request.args['camera_id']
-    height = request.args['height'] or 240
-
+    height = request.args.get('height', None)
+    width = request.args.get('width', None)
     dw.login()
-    imgdata = dw.get_thumbnail(camera_id, height)
+    
+    if height:
+        imgdata = dw.get_thumbnail(camera_id, height=height)
+    elif width:
+        imgdata = dw.get_thumbnail(camera_id, width=width)
     
     return Response(
         response=imgdata,
