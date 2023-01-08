@@ -31,7 +31,7 @@ Make sure you have exited the development venv before starting a production inst
 ### Python3 Virtual Environment
 
 #### Create production virtual environment
-- `python3 -m venv /var/www/camproxy-ng/.venv`
+- `python3 -m venv /var/www/camproxy-ng/flask-backend/.venv`
 
 #### Activate venv for your shell
 - `. /var/www/camproxy-ng/.venv/bin/activate`
@@ -50,7 +50,9 @@ pip install -r requirements.txt
 The install uses mod-wsgi and points to the python3 virtual environment you set up above.
 
 - `sudo cp /var/www/camproxy-ng/apache2/camproxy-ng.conf /etc/apache2/sites-available`
+- [create/copy SSL certs]
 - `sudo a2ensite camproxy-ng`
+- `sudo a2enmod ssl`
 
 ### Customize config
 
@@ -62,7 +64,7 @@ Go here and set up a new OAuth2 client ID - https://console.cloud.google.com/api
 
 The client must have an Authorized Redirect URL, e.g.: `https://cameras.makeitlabs.com/oauth2callback`
 
-Download and copy the client secret json file to `/var/www/camproxy/conf/client_secret.json` (look for "Download JSON" from the Google Cloud admin page for the client ID)
+Download and copy the client secret json file to `/var/www/camproxy-ng/flask-backend/conf/client_secret.json` (look for "Download JSON" from the Google Cloud admin page for the client ID)
 
 
 ### Set up nginx Reverse Proxy
