@@ -3,17 +3,36 @@ Camera proxy backend with Google OAuth2 authentication.  It is intended to be ru
 
 ## Development 
 
-### Installation for Development
+Development uses self-hosted servers for the Flask backend and the React frontend.
+
+### Installation for Backend
 ```
-python3 -m venv flaskenv
-. flaskenv/bin/activate
+cd flask-backend
+python3 -m venv .venv
+. .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Running for Development
+### Running Backend
 ```
-. flaskenv/bin/activate
+cd flask-backend
+. .venv/bin/activate
 python3 app.py
+```
+
+### Installation for Frontend
+
+```
+sudo apt install npm
+cd react-frontend
+npm install
+```
+
+### Running Frontend
+
+```
+cd react-frontend
+npm start
 ```
 
 ## Production
@@ -24,7 +43,10 @@ Make sure you have exited the development venv before starting a production inst
 - `sudo apt install git apache2 libapache2-mod-wsgi-py3 python3-flask python3-pip python3.10-venv`
 
 ### Clone git repo
-- `git clone git@github.org:/makeitlabs/camproxy -b ng camproxy-ng`
+
+You will need your github ssh keys configured before this will work.
+
+- `git clone git@github.org:/makeitlabs/camproxy camproxy-ng`
 - `sudo cp -R camproxy-ng /var/www`
 - `sudo chown -R username:www-data /var/www/camproxy-ng` (replace username with your username)
 
@@ -47,12 +69,20 @@ pip install -r requirements.txt
 
 ### Install Apache config
 
-The install uses mod-wsgi and points to the python3 virtual environment you set up above.
+The backend uses mod-wsgi and points to the python3 virtual environment you set up above.
 
-- `sudo cp /var/www/camproxy-ng/apache2/camproxy-ng.conf /etc/apache2/sites-available`
-- [create/copy SSL certs]
-- `sudo a2ensite camproxy-ng`
-- `sudo a2enmod ssl`
+The frontend points to the built version of the React frontend.
+
+```
+sudo cp /var/www/camproxy-ng/apache2/camproxy-frontend.conf /etc/apache2/sites-available
+sudo cp /var/www/camproxy-ng/apache2/camproxy-backend.conf /etc/apache2/sites-available`
+
+[create/copy self-signed SSL certs to the /etc/ssl dir]
+
+sudo a2ensite camproxy-frontend
+sudo a2ensite camproxy-backend
+sudo a2enmod ssl
+```
 
 ### Customize config
 
@@ -62,14 +92,26 @@ Copy `env-example` to `.env` and configure it as needed.  You will need credenti
 
 Go here and set up a new OAuth2 client ID - https://console.cloud.google.com/apis/credentials
 
-The client must have an Authorized Redirect URL, e.g.: `https://cameras.makeitlabs.com/oauth2callback`
+The client must have an Authorized Redirect URL, e.g.: `https://cameras.makeitlabs.com/api/callback`
 
 Download and copy the client secret json file to `/var/www/camproxy-ng/flask-backend/conf/client_secret.json` (look for "Download JSON" from the Google Cloud admin page for the client ID)
 
 
 ### Set up nginx Reverse Proxy
 
-SSL is handled by an nginx proxy in production.  Set up a LetsEncrypt cert for the domain, e.g. `cameras.makeitlabs.com` and enable force SSL.  Forward https to the camproxy-ng instance port 443.
+The application is provided publically via an nginx proxy in production.  Set up a LetsEncrypt cert for the domain, e.g. `cameras.makeitlabs.com` and enable force SSL.  
+
+- Forward https for / to the camproxy frontend at port 443.
+- Set up a Custom Location for `/api/` and point it to `production-host/` port 8443.  Note the slashes are important in the nginx config.
+- Use the SSL cert you acquired for the domain earlier.
 
 ### Restart Apache
-- `sudo apachectl restart`
+
+`sudo apachectl restart`
+
+### Logs
+
+Production logs appear in:
+
+- Backend: `/var/log/apache2/camproxy-backend.log`
+- Frontend: `/var/log/apache2/camproxy-frontend.log`
