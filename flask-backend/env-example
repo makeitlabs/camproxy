@@ -1,0 +1,14 @@
+GOOGLE_CLIENT_SECRET_FILE="conf/client_secret.json"
+GOOGLE_CLIENT_ID=<client secret>
+SECRET_KEY=<secret key>
+ALGORITHM=HS256
+PROJECT_ID=<google project id>
+BACKEND_URL=https://cameras.makeitlabs.com/api
+FRONTEND_URL=https://cameras.makeitlabs.com
+DW_URL=https://dw:7001
+DW_UNSAFE_SSL=True
+DW_USERNAME=<dw username>
+DW_PASSWORD=<dw password>
+FLASK_SSL_CERT=conf/camproxy.crt
+FLASK_SSL_KEY=conf/camproxy.key
+REQUIRED_EMAIL_DOMAIN="@makeitlabs.com"
