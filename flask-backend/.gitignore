@@ -1,0 +1,7 @@
+.env
+client-secret.json
+__pycache__
+flaskenv
+.venv
+conf
+
