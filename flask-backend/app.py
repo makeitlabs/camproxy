@@ -1,4 +1,3 @@
-import json
 from flask import Flask 
 from flask.wrappers import Response
 from functools import wraps
@@ -11,17 +10,25 @@ from google.oauth2 import id_token
 from google_auth_oauthlib.flow import Flow
 import os, pathlib
 import google
-
-from dwAPI import dwAPI
-
+import json
 import jwt
+import redis
+from datetime import datetime
 from flask_cors import CORS
-
-dw = dwAPI()
+from dwAPI import dwAPI
 
 
 app = Flask(__name__)
 load_dotenv()
+
+dw = dwAPI()
+r = redis.Redis(host=os.getenv("REDIS_SERVER"),
+                port=os.getenv("REDIS_PORT"),
+                db=os.getenv("REDIS_DB"),
+                username=os.getenv("REDIS_USERNAME"),
+                password=os.getenv("REDIS_PASSWORD"),
+                decode_responses=True)
+
 CORS(app)
 app.config['Access-Control-Allow-Origin'] = '*'
 app.config["Access-Control-Allow-Headers"]="Content-Type"
@@ -34,6 +41,8 @@ client_secrets_file = os.path.join(pathlib.Path(__file__).parent, os.getenv("GOO
 algorithm = os.getenv("ALGORITHM")
 BACKEND_URL=os.getenv("BACKEND_URL")
 FRONTEND_URL=os.getenv("FRONTEND_URL")
+
+MAX_SESSION_LENGTH=int(os.getenv("MAX_SESSION_SECONDS"))
 
 flow = Flow.from_client_secrets_file(
     client_secrets_file=client_secrets_file,
@@ -54,6 +63,18 @@ def login_required(f):
             if encoded_jwt==None:
                 return abort(401)
             else:
+                sub = session["google_id"]
+                if sub is not None:
+                    now = datetime.now().strftime('%s')
+                    when = r.hget('session_time', sub)
+                    if (when is not None):
+                        r.hset('session_last', sub, now)
+                        age = int(now) - int(when)
+                        
+                        if age > MAX_SESSION_LENGTH:
+                            return abort(429)
+                
+                
                 return f()
         else:
             return abort(401)
@@ -74,10 +95,35 @@ def callback():
         id_token=credentials._id_token, request=token_request,
         audience=GOOGLE_CLIENT_ID
     )
-    session["google_id"] = id_info.get("sub")
+
+    sub = id_info.get('sub')
+    session['google_id'] = sub
+
+    print(f"{sub} {id_info.get('name')}")
+    now = int(datetime.now().strftime('%s'))
+
+    r.hset('session_time', sub, now)
+    r.hset('session_last', sub, now)
+    r.hset('session_email', sub, id_info.get('email'))
+    r.hset('session_name', sub, id_info.get('name'))
+    r.hset('session_picture', sub, id_info.get('picture'))
 
     # removing the specific audience, as it is throwing error
     del id_info['aud']
+
+# {'iss': 'https://accounts.google.com',
+#  'azp': '1069983490597-v45fiih31mmlvo0t6efmibjuc09nagkb.apps.googleusercontent.com',
+#  'aud': '1069983490597-v45fiih31mmlvo0t6efmibjuc09nagkb.apps.googleusercontent.com',
+#  'sub': '100168165519539079927',
+#  'hd': 'makeitlabs.com',
+#  'email': 'steve.richardson@makeitlabs.com',
+#  'email_verified': True,
+#  'at_hash': 'nHCJFvAZsFgTG1oT_TuwpQ',
+#  'name': 'Steve Richardson',
+#  'picture': 'https://lh3.googleusercontent.com/a/AEdFTp4J-ga2u8qNy1jQmwsJ3DUZdl5QtC-g-NP4AuUW=s96-c',
+#  'given_name': 'Steve',
+#  'family_name': 'Richardson',
+#  'locale': 'en', 'iat': 1673273275, 'exp': 1673276875}
 
     jwt_token=Generate_JWT(id_info)
 
@@ -92,11 +138,6 @@ def callback():
     
 
     return redirect(f"{FRONTEND_URL}/?jwt={jwt_token}")
-    """ return Response(
-        response=json.dumps({'JWT':jwt_token}),
-        status=200,
-        mimetype='application/json'
-    ) """
 
 
 @app.route("/auth/google")
@@ -139,6 +180,61 @@ def home():
         status=200,
         mimetype='application/json'
     )
+
+@app.route("/session_info",endpoint='session_info')
+@login_required
+def session_info():
+    sub = session["google_id"]
+    print(f"get session info for sub {sub}")
+    try:
+        when = r.hget('session_time', sub)
+        if (when is not None):
+            now = int(datetime.now().strftime('%s'))
+            remaining = MAX_SESSION_LENGTH - (now - int(when))
+            
+            info = {}
+            info['max_time'] = MAX_SESSION_LENGTH
+            info['remaining_time'] = remaining
+            info['others'] = {}
+
+            others = r.hkeys('session_time')
+            for osub in others:
+                oname = r.hget('session_name', osub)
+                olast = r.hget('session_last', osub)
+                opic = r.hget('session_picture', osub)
+
+                if osub != sub and olast is not None:
+                    age = now - int(olast)
+                    if age < 60:
+                        record = {}
+                        record['session_age'] = age
+                        record['session_last'] = olast
+                        record['session_name'] = oname
+                        if opic is not None:
+                            record['session_picture'] = opic
+
+                        print(record)
+                        info['others'][osub] = record
+                    else:
+                        print(f"{oname}: session aged out")
+
+            print(f"info response for {sub}:")
+            print(info)
+            return Response(
+                response=json.dumps(info),
+                status=200,
+                mimetype='application/json'
+            )
+    except Exception as e:
+        print(e)
+        pass
+
+    print(f"can't find info for {sub}")
+    return Response(
+        response=json.dumps({"message":"Error getting session info for sub " + sub}),
+        status=500,
+        mimetype='application/json'
+    )   
 
 @app.route("/thumbnail",endpoint='thumbnail')
 @login_required

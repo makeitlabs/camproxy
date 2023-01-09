@@ -1,17 +1,19 @@
 import React, { useEffect } from "react";
 import Login from "./components/Login";
 import LoginError from "./components/LoginError";
+import TimedOut from "./components/TimedOut";
 import Home from "./components/Home";
 import Axios from "axios";
 import { Routes, Route, useNavigate } from "react-router";
 import '@fontsource/public-sans';
 
 export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-
+export const DEVEL = process.env.REACT_APP_DEVEL_MODE;
 
 function App() {
   const nav = useNavigate()
-  const handleClick = (e) => {
+  
+  const handleLogin = (e) => {
     e.preventDefault();
     Axios.get(`${BACKEND_URL}/auth/google`, {
       headers: {
@@ -38,11 +40,12 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={<Login login={handleClick}></Login>} />
-      <Route path="/login_error" element={<LoginError></LoginError>} />
+      <Route path="/login" element={<Login login={handleLogin}></Login>} />
+      <Route path="/login_error" element={<LoginError login={handleLogin}></LoginError>} />
       <Route path="/home" element={<Home/>} />
+      <Route path="/timeout" element={<TimedOut login={handleLogin}/> } />
 
-      <Route path="*" element={<Login login={handleClick}></Login>} />
+      <Route path="*" element={<Login login={handleLogin}></Login>} />
     </Routes>
   );
 }

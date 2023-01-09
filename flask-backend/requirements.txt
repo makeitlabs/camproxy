@@ -4,3 +4,4 @@ flask
 pyjwt
 python-dotenv
 flask_cors
+redis

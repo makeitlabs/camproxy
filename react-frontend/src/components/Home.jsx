@@ -1,38 +1,38 @@
 import * as React from 'react';
-import { useEffect, useState, useRef } from "react";
-import { BACKEND_URL } from "../App";
+import { useEffect, useState } from "react";
+import { BACKEND_URL, DEVEL } from "../App";
 import Axios from "axios";
 import { useNavigate } from "react-router";
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
+import { CssBaseline, Grid, AppBar, Box, Toolbar, IconButton, Typography, Avatar, Tooltip, Drawer, CircularProgress } from '@mui/material';
+import { Dialog, DialogTitle, DialogActions, DialogContent } from '@mui/material';
+import { List, ListItem, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
-import Avatar from '@mui/material/Avatar';
-import Tooltip from '@mui/material/Tooltip';
-import Drawer from '@mui/material/Drawer';
-import CssBaseline from '@mui/material/CssBaseline';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import ListSubheader from "@mui/material/ListSubheader";
-import Grid from '@mui/material/Grid';
 import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
 import CameraIcon from '@mui/icons-material/CropOriginalSharp';
 import AreaIcon from '@mui/icons-material/GridOnSharp';
 import Thumb from "./Thumb";
 import '@fontsource/roboto/300.css';
-import { CircularProgress } from '@mui/material';
-
 
 const PAGE_SINGLE_CAM = 'Single Camera';
 const PAGE_MULTI_CAM = 'Multi Camera'
 
+const useViewport = () => {
+	const [width, setWidth] = React.useState(window.innerWidth);
+	React.useEffect(() => {
+	  const handleWindowResize = () => { setWidth(window.innerWidth); }
+	  window.addEventListener("resize", handleWindowResize);
+	  return () => window.removeEventListener("resize", handleWindowResize);
+	}, []);
+	return { width };
+}
+
 function Home(props) {
 	const { window } = props;
+	const { width } = useViewport();
+
+	const [zoomableOpen, setZoomableOpen] = useState(false);
+	const [othersOpen, setOthersOpen] = useState(false);
 	const [mobileOpen, setMobileOpen] = useState(false);
 
 	const [auth, setAuth] = useState(null);
@@ -40,13 +40,14 @@ function Home(props) {
 	const [areasToIds, setAreasToIds] = useState({});
 	const [selectedDevice, setSelectedDevice] = useState(null);
 	const [selectedArea, setSelectedArea] = useState(null);
-	const [selectedPage, setSelectedPage] = useState(PAGE_SINGLE_CAM)
-	
-	const elementRef = useRef(null);
-	const [mainWidth, setMainWidth]=useState(0);
-	
+	const [selectedPage, setSelectedPage] = useState(PAGE_SINGLE_CAM);
+	const [sessionInfo, setSessionInfo] = useState({});
+	const [timerId, setTimerId] = useState(null);
+
+
 	const nav = useNavigate()
 
+	const wideBreak = 600;
 	const drawerWidth = 240;
 
 
@@ -81,14 +82,9 @@ function Home(props) {
 		else return val;
 	}
 
+	  
+	  
 	useEffect(() => {
-		let w=elementRef.current.getBoundingClientRect().width;
-		if (w>1280)
-			w=1280;
-		setMainWidth(w);
-
-
-
 		if (localStorage.getItem('JWT') == null) {
 			return nav("/login")
 		}
@@ -141,13 +137,81 @@ function Home(props) {
 
 		let selPage = getLocalItem("selectedPage", PAGE_SINGLE_CAM);
 		setSelectedPage(selPage);
-	
 
-	}, [nav, setDevices, elementRef])
+		fetchSessionInfo();
 
+        const tid = setInterval(() => {
+			fetchSessionInfo();
+        }, 10000);
+        setTimerId(tid);
+        return () => {
+            clearInterval(timerId);
+        }		
+
+	}, [nav, setDevices])
+
+	const fetchSessionInfo = () => {
+		Axios.get(`${BACKEND_URL}/session_info`, {
+			headers: { "Authorization": `Bearer ${localStorage.getItem('JWT')}` }
+		})
+			.then((res) => {
+				const info = res.data;
+				setSessionInfo(info);
+			})
+			.catch((err) => console.log(err));		
+	}
+
+	const getRemainingTime = (i) => {
+		if (i !== undefined && i.remaining_time !== undefined) {
+			let secs = i.remaining_time;
+			if (secs > 3600) {
+				let hours = Math.floor(secs / 3600);
+				return hours + 'h';
+			} else if (secs > 60) {
+				let mins = Math.floor(secs / 60);
+				return mins + 'm';
+			} else {
+				return secs + 's';
+			}
+		}
+		return "";
+	}
+
+	const renderOthers = (info, listFormat) => {
+		if (info !== undefined && info.others !== undefined) {
+			if (listFormat !== undefined) {
+				return (
+					<List>
+						
+					{
+						Object.keys(info.others).map( (osub) => {
+							return (<ListItem>
+										<Avatar sx={{height: 28, width: 28, ml: '2px', opacity: info.others[osub].session_age > 15 ? '30%' : '100%'}} src={info.others[osub].session_picture}/>
+										<Box sx={{ml:1}}>{info.others[osub].session_name}</Box>
+									</ListItem>)
+						})
+					}
+					</List>
+				);
+			} else {
+				return (
+					<Box sx={{ mr: 2, display: 'flex' }}>
+					{
+						Object.keys(info.others).map( (osub) => {
+							return (<Tooltip title={info.others[osub].session_age > 15 ? "Idle viewer: " + info.others[osub].session_name: "Also viewing: " + info.others[osub].session_name}>
+										<Avatar sx={{height: 28, width: 28, ml: '2px', opacity: info.others[osub].session_age > 15 ? '30%' : '100%'}} src={info.others[osub].session_picture}/>
+									</Tooltip>)
+						})
+					}
+					</Box>
+				);
+			}
+		}
+		return <div/>
+	}
 	const handleLogout = () => {
 		localStorage.removeItem('JWT')
-		return nav("/login")
+		return nav('/login');
 	}
 
 	const handleDeviceClick = (event, id) => {
@@ -163,25 +227,43 @@ function Home(props) {
 	}
 
 	const handleMultiClick = (event, id) => {
-		// jump to single view of this camera
+		
 		setSelectedDevice(id);
-		localStorage.setItem("selectedDevice", id);
-		setPage(PAGE_SINGLE_CAM);
+
+		if (width < wideBreak) {
+			setZoomableOpen(true);
+		} else {
+			// jump to single view of this camera
+
+			localStorage.setItem("selectedDevice", id);
+			setPage(PAGE_SINGLE_CAM);
+		}
 	}
 
-	const handleSingleClick = (event, id) => {
-		// find the area that contains this camera and show multi-view
 
-		for (const area in areasToIds) {
-			const ids = areasToIds[area];
-			if (ids.includes(id)) {
-				setSelectedArea(area);
-				localStorage.setItem("selectedArea", area);
-				setPage(PAGE_MULTI_CAM);
-				return;
+	const handleSingleClick = (event, id) => {
+
+		if (width < wideBreak) {
+			setZoomableOpen(true);
+		} else {
+			// find the area that contains this camera and show multi-view
+
+			for (const area in areasToIds) {
+				const ids = areasToIds[area];
+				if (ids.includes(id)) {
+					setSelectedArea(area);
+					localStorage.setItem("selectedArea", area);
+					setPage(PAGE_MULTI_CAM);
+					return;
+				}
 			}
+
 		}
 
+	}
+	const handleThumbTimeout = () => {
+		localStorage.removeItem('JWT')
+		return nav('/timeout');
 	}
 
 	const drawerContents = (
@@ -259,9 +341,8 @@ function Home(props) {
 					sx={{
 						width: { sm: `calc(100% - ${drawerWidth}px)` },
 						ml: { sm: `${drawerWidth}px` },
+						backgroundColor: `${DEVEL}` === "yes" ? 'gray' : '#1976d2'
 					}}
-					ref={elementRef}
-
 				>
 					<Toolbar>
 
@@ -287,6 +368,7 @@ function Home(props) {
 								letterSpacing: '-.05rem',
 								color: 'orange',
 								textDecoration: 'none',
+								textShadow: '1px 1px 1px black'
 							}}
 						>
 							MakeIt Labs
@@ -305,10 +387,22 @@ function Home(props) {
 							<Tooltip title={auth ? auth["email"] : ""}><Typography variant="button">{auth ? auth["name"] : ""}</Typography></Tooltip>
 						</Box>
 
-						<Box sx={{ flexGrow: 0 }}>
+						<Box sx={{ display: 'flex', flexGrow: 0, alignItems: 'center' }}>
+
+							{ width >= wideBreak &&
+								renderOthers(sessionInfo)
+							}
+
 							<IconButton sx={{ p: 0 }}>
-								<Avatar alt={auth ? auth["name"] : ""} src={auth ? auth["picture"] : ""} />
+								<Tooltip title={auth ? auth["name"] : ""}>
+									<Avatar alt={auth ? auth["name"] : ""} src={auth ? auth["picture"] : ""} onClick={ () => { setOthersOpen(true) }}/>
+								</Tooltip>
 							</IconButton>
+
+							<Box sx={{ display: 'flex', alignItems: 'center', marginRight: '5px', marginLeft: '10px'}}>
+								<Typography variant="caption">{getRemainingTime(sessionInfo)}</Typography>
+							</Box>
+
 
 							<Tooltip title="Logout">
 								<IconButton onClick={() => handleLogout()} color="inherit">
@@ -353,28 +447,65 @@ function Home(props) {
 
 
 			{selectedPage === PAGE_SINGLE_CAM &&
-				<div>
-					<Box component="main" sx={{ flexGrow: 1, p: 1 }}>
-						<Toolbar />
-						<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)} width={mainWidth - 20} interval="1500" clickCallback={handleSingleClick}  ></Thumb>
-					</Box>
-				</div>
+				<Box>
+					{ !zoomableOpen &&
+						<Box component="main" sx={{ flexGrow: 1, p: 1 }}>
+							<Toolbar />
+							{ width < wideBreak &&
+								<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)} width={width - 20 } interval="1500" clickCallback={handleSingleClick} timeoutCallback={handleThumbTimeout}></Thumb>
+							}
+							{ width >= wideBreak &&
+								<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)} width={width - drawerWidth - 20} interval="1500" clickCallback={handleSingleClick} timeoutCallback={handleThumbTimeout}></Thumb>
+							}
+						</Box>
+					}
+				</Box>
 			}
 			{selectedPage === PAGE_MULTI_CAM &&
 				<Box component="main" sx={{ flexGrow: 1 }}>
 					<Toolbar />
-					<Grid container alignItems="left" justifyContent="left" rowSpacing="1px" columnSpacing="1px" sx={{ p: 1 }}>
-						{
-							Object.values(getSelectedAreaIds(selectedArea)).map((item) => (
-								<Grid item sx={{ minWidth: 320, justifyContent: 'center' }}>
-									<Thumb id={item} name={lookupDevice(item)} width="320" interval="3000" smallThumb clickCallback={handleMultiClick} user={auth ? auth.email : ""}></Thumb>
-								</Grid>
-							))
-						}
-					</Grid>
+					{ !zoomableOpen &&
+						<Grid container alignItems="left" justifyContent="left" rowSpacing="1px" columnSpacing="1px" sx={{ p: 1 }}>
+							{
+								Object.values(getSelectedAreaIds(selectedArea)).map((item) => (
+									<Grid item sx={{ minWidth: 320, justifyContent: 'center' }}>
+										{ width < 360 &&
+											<Thumb id={item} name={lookupDevice(item)} width={width - 20} interval="3000" smallThumb clickCallback={handleMultiClick} timeoutCallback={handleThumbTimeout}></Thumb>
+										}
+										{ width >= 360 &&
+											<Thumb id={item} name={lookupDevice(item)} width="340" interval="3000" smallThumb clickCallback={handleMultiClick} timeoutCallback={handleThumbTimeout}></Thumb>
+										}
+									</Grid>
+								))
+							}
+						</Grid>
+					}
 				</Box>
 			}
+
+			{ width < wideBreak &&
+				<Dialog fullScreen open={zoomableOpen} onClose={ () => setZoomableOpen(false) }>
+					<DialogActions>
+						<IconButton onClick={ () => setZoomableOpen(false) }><CloseIcon/></IconButton>
+					</DialogActions>
+					<DialogTitle>Zoom and Scroll</DialogTitle>
+					<DialogContent>
+						<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)} width={1920} interval="0" timeoutCallback={handleThumbTimeout} zoomable ></Thumb>
+					</DialogContent>
+				</Dialog>
+			}
+
+			<Dialog maxWidth={width - 20} open={othersOpen} onClose={ () => setOthersOpen(false) }>
+				<DialogActions>
+					<IconButton onClick={ () => setOthersOpen(false) }><CloseIcon/></IconButton>
+				</DialogActions>
+				<DialogTitle>Other Viewers</DialogTitle>
+				<DialogContent>
+				 	{renderOthers(sessionInfo, true)}
+				</DialogContent>
+				</Dialog>			
 		</Box>
+
 	);
 }
 
