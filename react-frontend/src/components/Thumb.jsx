@@ -33,7 +33,11 @@ function Thumb({ id, name, height, width, interval, smallThumb, clickCallback, t
             if (height !== undefined) {
                 url=`${BACKEND_URL}/thumbnail?camera_id=${id}&height=${height}`;
             } else if (width !== undefined) {
-                url=`${BACKEND_URL}/thumbnail?camera_id=${id}&width=${width}`;
+                let w = width;
+                if (w > 1280) {
+                    w = 1280;
+                }
+                url=`${BACKEND_URL}/thumbnail?camera_id=${id}&width=${w}`;
             }
             Axios.get(url, {
                 responseType: 'blob',

@@ -44,12 +44,10 @@ function Home(props) {
 	const [sessionInfo, setSessionInfo] = useState({});
 	const [timerId, setTimerId] = useState(null);
 
-
 	const nav = useNavigate()
 
 	const wideBreak = 600;
 	const drawerWidth = 240;
-
 
 	const handleDrawerToggle = () => {
 		setMobileOpen(!mobileOpen);
@@ -375,12 +373,17 @@ function Home(props) {
 						</Typography>
 
 						<Box sx={{ flexGrow: 1, display: { md: 'flex' } }}>
-							<IconButton key={PAGE_SINGLE_CAM}
-										sx={{ color:'white', backgroundColor: (selectedPage === PAGE_SINGLE_CAM ? 'orange' : 'transparent') }} 
-										onClick={() => {setPage(PAGE_SINGLE_CAM)}}><CameraIcon/></IconButton>
-							<IconButton  key={PAGE_MULTI_CAM}
-										sx={{ color:'white', backgroundColor: (selectedPage === PAGE_MULTI_CAM ? 'orange' : 'transparent') }} 
-										onClick={() => {setPage(PAGE_MULTI_CAM)}}><AreaIcon/></IconButton>
+							<Tooltip title="Single camera view">
+								<IconButton key={PAGE_SINGLE_CAM}
+											sx={{ color:'white', backgroundColor: (selectedPage === PAGE_SINGLE_CAM ? 'orange' : 'transparent') }} 
+											onClick={() => {setPage(PAGE_SINGLE_CAM)}}><CameraIcon/></IconButton>
+							</Tooltip>
+
+							<Tooltip title="Multi-camera view">
+								<IconButton  key={PAGE_MULTI_CAM}
+											sx={{ color:'white', backgroundColor: (selectedPage === PAGE_MULTI_CAM ? 'orange' : 'transparent') }} 
+											onClick={() => {setPage(PAGE_MULTI_CAM)}}><AreaIcon/></IconButton>
+							</Tooltip>
 						</Box>
 
 						<Box sx={{ flexGrow: 0, display: { xs: 'none'}, marginRight: "10px" }}>
@@ -394,13 +397,15 @@ function Home(props) {
 							}
 
 							<IconButton sx={{ p: 0 }}>
-								<Tooltip title={auth ? auth["name"] : ""}>
-									<Avatar alt={auth ? auth["name"] : ""} src={auth ? auth["picture"] : ""} onClick={ () => { setOthersOpen(true) }}/>
+								<Tooltip title={auth ? auth["name"] + " (you)" : "(you)"}>
+									<Avatar alt={auth ? auth["name"] + " (you)" : "(you)"} src={auth ? auth["picture"] : ""} onClick={ () => { setOthersOpen(true) }}/>
 								</Tooltip>
 							</IconButton>
 
-							<Box sx={{ display: 'flex', alignItems: 'center', marginRight: '5px', marginLeft: '10px'}}>
-								<Typography variant="caption">{getRemainingTime(sessionInfo)}</Typography>
+							<Box sx={{ display: 'flex', alignItems: 'center', marginRight: '5px', marginLeft: '10px', userSelect: 'none'}}>
+								<Tooltip title="Session time remaining">
+									<Typography variant="caption">{getRemainingTime(sessionInfo)}</Typography>
+								</Tooltip>
 							</Box>
 
 
@@ -449,13 +454,13 @@ function Home(props) {
 			{selectedPage === PAGE_SINGLE_CAM &&
 				<Box>
 					{ !zoomableOpen &&
-						<Box component="main" sx={{ flexGrow: 1, p: 1 }}>
+						<Box component="main" sx={{ flexGrow: 0, p: '2px' }}>
 							<Toolbar />
 							{ width < wideBreak &&
 								<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)} width={width - 20 } interval="1500" clickCallback={handleSingleClick} timeoutCallback={handleThumbTimeout}></Thumb>
 							}
 							{ width >= wideBreak &&
-								<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)} width={width - drawerWidth - 20} interval="1500" clickCallback={handleSingleClick} timeoutCallback={handleThumbTimeout}></Thumb>
+								<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)} width={width - drawerWidth - 60} interval="2000" clickCallback={handleSingleClick} timeoutCallback={handleThumbTimeout}></Thumb>
 							}
 						</Box>
 					}
@@ -470,10 +475,10 @@ function Home(props) {
 								Object.values(getSelectedAreaIds(selectedArea)).map((item) => (
 									<Grid item sx={{ minWidth: 320, justifyContent: 'center' }}>
 										{ width < 360 &&
-											<Thumb id={item} name={lookupDevice(item)} width={width - 20} interval="3000" smallThumb clickCallback={handleMultiClick} timeoutCallback={handleThumbTimeout}></Thumb>
+											<Thumb id={item} name={lookupDevice(item)} width={width - 20} interval="4000" smallThumb clickCallback={handleMultiClick} timeoutCallback={handleThumbTimeout}></Thumb>
 										}
 										{ width >= 360 &&
-											<Thumb id={item} name={lookupDevice(item)} width="340" interval="3000" smallThumb clickCallback={handleMultiClick} timeoutCallback={handleThumbTimeout}></Thumb>
+											<Thumb id={item} name={lookupDevice(item)} width="340" interval="4000" smallThumb clickCallback={handleMultiClick} timeoutCallback={handleThumbTimeout}></Thumb>
 										}
 									</Grid>
 								))
