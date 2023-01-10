@@ -22,7 +22,7 @@ const Session = ({ setSession, handleTimeout }) => {
                     setSession(res.data);
                 })
                 .catch((err) => {
-    
+
                     if (err.response && err.response.status === 429) {
                         handleTimeout();
                     } else {
@@ -81,8 +81,8 @@ const SessionOthers = (props) => {
             } else {
                 const others = Object.keys(session.others).map((osub) =>
                     <ListItem key={osub}>
-                        <Avatar sx={{ backgroundColor: 'white', opacity: session.others[osub].session_age > 15 ? '30%' : '100%' }} src={session.others[osub].session_picture} />
-                        <ListItemText key={osub} sx={{ ml: 1 }}
+                        <Avatar key={osub + "_1"} sx={{ backgroundColor: 'white', opacity: session.others[osub].session_age > 15 ? '30%' : '100%' }} src={session.others[osub].session_picture} />
+                        <ListItemText key={osub + "_2"} sx={{ ml: 1 }}
                             primary={session.others[osub].session_name}
                             secondary={session.others[osub].session_age > 15 ? "active recently" : "active now"} />
                     </ListItem>
@@ -96,9 +96,9 @@ const SessionOthers = (props) => {
                         Object.keys(session.others).map((osub) => {
                             if (session.others[osub].session_age < 60)
                                 return (
-                                <Tooltip title={session.others[osub].session_age > 15 ? session.others[osub].session_name + " (active recently)" : "Also viewing: " + session.others[osub].session_name}>
-                                    <Avatar sx={{ backgroundColor: 'white', height: 28, width: 28, ml: '2px', opacity: session.others[osub].session_age > 15 ? '60%' : '100%' }} src={session.others[osub].session_picture} />
-                                </Tooltip>)
+                                    <Tooltip key={osub} title={session.others[osub].session_age > 15 ? session.others[osub].session_name + " (active recently)" : "Also viewing: " + session.others[osub].session_name}>
+                                        <Avatar key={osub + "_1"} sx={{ backgroundColor: 'white', height: 28, width: 28, ml: '2px', opacity: session.others[osub].session_age > 15 ? '60%' : '100%' }} src={session.others[osub].session_picture} />
+                                    </Tooltip>)
                             else
                                 return null;
                         })
