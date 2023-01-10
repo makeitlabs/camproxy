@@ -16,14 +16,15 @@ function useAreas() {
     return [areas, setAreas];
 }
 
-const Devices = (props) => {
+const Devices = ( { setDevices, setAreas, setSelectedDevice, setSelectedArea }) => {
+
     useEffect(() => {
         Axios.get(`${BACKEND_URL}/devices`, {
             headers: { "Authorization": `Bearer ${localStorage.getItem('JWT')}` }
         })
             .then((res) => {
                 const devs = res.data
-                props.setDevices(devs)
+                setDevices(devs)
 
                 // Build area list and area/ID map from device list
                 // Device names must be formatted as "Area - Name"
@@ -43,19 +44,19 @@ const Devices = (props) => {
                         arealist.push(area);
                     }
                 }
-                props.setAreas(areas);
+                setAreas(areas);
 
                 // pick the first device if none stored
                 let selDev = getLocalItem("selectedDevice", devs[0].id);
-                props.setSelectedDevice(selDev);
+                setSelectedDevice(selDev);
 
                 // pick the first area if none stored
                 let selArea = getLocalItem("selectedArea", arealist[0]);
-                props.setSelectedArea(selArea);
+                setSelectedArea(selArea);
             })
             .catch((err) => console.log(err));
 
-    }, [])
+    }, [setDevices, setAreas, setSelectedDevice, setSelectedArea] )
 
     return null;
 }

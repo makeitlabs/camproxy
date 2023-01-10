@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Box, Avatar, Tooltip } from '@mui/material';
 import { List, ListItem, ListItemText } from '@mui/material';
 import { BACKEND_URL } from "./Constants";
@@ -10,39 +10,37 @@ function useSession() {
     return [session, setSession];
 }
 
-const Session = (props) => {
-    let setSession = props.setSession;
-
-    const fetchSessionInfo = () => {
-        Axios.get(`${BACKEND_URL}/session_info`, {
-            headers: { "authorization": `Bearer ${localStorage.getItem('JWT')}` }
-        })
-            .then((res) => {
-                setSession(res.data);
-            })
-            .catch((err) => {
-
-                if (err.response && err.response.status === 429) {
-                    props.handleTimeout();
-                } else {
-                    console.log(err);
-                }
-            })
-    }
+const Session = ({ setSession, handleTimeout }) => {
+    const tidRef = useRef(null);
 
     useEffect(() => {
-        let tid = -1;
+        const fetchSessionInfo = () => {
+            Axios.get(`${BACKEND_URL}/session_info`, {
+                headers: { "authorization": `Bearer ${localStorage.getItem('JWT')}` }
+            })
+                .then((res) => {
+                    setSession(res.data);
+                })
+                .catch((err) => {
+    
+                    if (err.response && err.response.status === 429) {
+                        handleTimeout();
+                    } else {
+                        console.log(err);
+                    }
+                })
+        }
 
-            fetchSessionInfo();
-            
-        tid = setInterval(() => {
+        fetchSessionInfo();
+
+        tidRef.current = setInterval(() => {
             fetchSessionInfo();
         }, 10000);
         return () => {
-            clearInterval(tid);
+            clearInterval(tidRef.current);
         }
 
-    }, [])
+    }, [setSession, handleTimeout])
 
     return (<div />);
 
@@ -100,6 +98,8 @@ const SessionOthers = (props) => {
                                 return (<Tooltip title={session.others[osub].session_age > 15 ? session.others[osub].session_name + " (active recently)" : "Also viewing: " + session.others[osub].session_name}>
                                     <Avatar sx={{ backgroundColor: 'white', height: 28, width: 28, ml: '2px', opacity: session.others[osub].session_age > 15 ? '60%' : '100%' }} src={session.others[osub].session_picture} />
                                 </Tooltip>)
+                            else
+                                return null;
                         })
                     }
                 </Box>

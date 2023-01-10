@@ -7,14 +7,15 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
-function Thumb(props) {
+function Thumb({zoomable, smallThumb, id, name, imgWidth, imgHeight, interval, handleTimeout, onClick}) {
     const [thumb, setThumb] = useState(null);
     const [reloading, setReloading] = useState(false);
     const [zoomMode, setZoomMode] = useState(false);
     
     var req = useRef(null);
-
     const imgRef = useRef();
+    const thumbLoadedRef = useRef(null);
+    const tidRef = useRef(null);
 
 	const onUpdate = useCallback(({ x, y, scale }) => {
 	  const { current: img } = imgRef;
@@ -26,68 +27,64 @@ function Thumb(props) {
 	  }
 	}, []);
 
-    const getThumb = (id) => {
-        if (id) {
-            let url="";
-            if (props.imgHeight !== undefined) {
-                url=`${BACKEND_URL}/thumbnail?camera_id=${id}&height=${props.imgHeight}`;
-            } else if (props.imgWidth !== undefined) {
-                let w = props.imgWidth;
-                if (w > 1280) {
-                    w = 1280;
-                }
-                url=`${BACKEND_URL}/thumbnail?camera_id=${id}&width=${w}`;
-            }
-            Axios.get(url, {
-                responseType: 'blob',
-                cancelToken: req.current.token,
-                headers: { "Authorization": `Bearer ${localStorage.getItem('JWT')}` }
-            })
-                .then((res) => {
-                    setThumb(URL.createObjectURL(res.data));
-                    setReloading(false);
-                })
-                .catch((err) => {
-                    if (err.response && err.response.status === 429) {
-                        props.handleTimeout();
-                    } else {
-                        //console.log(err);
-                    }
-                })
-        }
-    }
-
     useEffect(() => {
-        let tid = -1;
+        const fetchThumb = (id) => {
+            if (id) {
+                let url="";
+                if (imgHeight !== undefined) {
+                    url=`${BACKEND_URL}/thumbnail?camera_id=${id}&height=${imgHeight}`;
+                } else if (imgWidth !== undefined) {
+                    let w = imgWidth;
+                    if (w > 1280) {
+                        w = 1280;
+                    }
+                    url=`${BACKEND_URL}/thumbnail?camera_id=${id}&width=${w}`;
+                }
+                Axios.get(url, {
+                    responseType: 'blob',
+                    cancelToken: req.current.token,
+                    headers: { "Authorization": `Bearer ${localStorage.getItem('JWT')}` }
+                })
+                    .then((res) => {
+                        setThumb(URL.createObjectURL(res.data));
+                        thumbLoadedRef.current = true;
+                        setReloading(false);
+                    })
+                    .catch((err) => {
+                        if (err.response && err.response.status === 429) {
+                            handleTimeout();
+                        } else {
+                            //console.log(err);
+                        }
+                    })
+            }
+        }
+
 
         req.current = Axios.CancelToken.source();
         let reqCopy = req.current;
 
-        setZoomMode(props.zoomable);
+        setZoomMode(zoomable);
 
-        if (thumb !== null) {
-            clearInterval(tid);
+        if (thumbLoadedRef.current !== null) {
+            clearInterval(tidRef.current);
             setReloading(true);
-            getThumb(props.id);
+            fetchThumb(id);
         } else {
-            setTimeout( () => getThumb(props.id), props.interval/10 );
+            setTimeout( () => fetchThumb(id), interval/10 );
         }
 
-        if (props.zoomable) {
-            getThumb(props.id);
-        } else {
-            let oi = Number(props.interval);
-            let interval = oi + (Math.random() * oi/10) - oi/20;
+        let oi = Number(interval);
+        let randomized_interval = Math.floor(oi + (Math.random() * oi/10) - oi/20);
 
-            tid = setInterval(() => {
-                getThumb(props.id);
-            }, interval);
-        }
+        tidRef.current = setInterval(() => {
+            fetchThumb(id);
+        }, randomized_interval);
         return () => {
             reqCopy.cancel();
-            clearInterval(tid);
+            clearInterval(tidRef.current);
         }
-    }, [props.id, props.interval, props.imgWidth]);
+    }, [id, interval, imgWidth, imgHeight, zoomable, handleTimeout]);
 
     var now = new Date().toLocaleString();
 
@@ -95,9 +92,9 @@ function Thumb(props) {
         <Box>
             { thumb === null &&
 
-                <Box sx={{ backgroundColor: '#eeeeee', width: props.imgWidth, height: (props.imgWidth*9/16), display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                <Box sx={{ backgroundColor: '#eeeeee', width: imgWidth, height: (imgWidth*9/16), display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
                     <CircularProgress disableShrink/>
-                    { props.smallThumb !== true &&
+                    { smallThumb !== true &&
                         <Typography variant="h6" sx={{marginLeft: '10px'}}>Loading...</Typography>
                     }
                 </Box>
@@ -110,15 +107,15 @@ function Thumb(props) {
             }
             { (thumb !== null && !zoomMode) &&
                     <Box sx={{ width: '100%', height: '100%', backgroundColor: '#aaaaaa', textAlign: 'center'}} >
-                        <Button sx={{ p: 0, m: 0}} onClick={ (event) => props.onClick(event, props.id) }>
-                            <img width={props.imgWidth} height={props.imgHeight} src={thumb} alt="" ref={imgRef}/>
+                        <Button sx={{ p: 0, m: 0}} onClick={ (event) => onClick(event, id) }>
+                            <img width={imgWidth} height={imgHeight} src={thumb} alt="" ref={imgRef}/>
                             { reloading &&
                                 <Box sx={{ position: 'absolute', bottom: 0, right: 0, width: '100%', height: '100%', background: 'black', opacity: '50%', justifyContent: 'center', alignItems: 'center', display: 'flex'}}>
                                     <CircularProgress disableShrink/>
                                 </Box>
 
                             }
-                            { props.smallThumb === true &&
+                            { smallThumb === true &&
                                 <Box sx={{
                                     position: 'absolute',
                                     bottom: 0,
@@ -132,11 +129,11 @@ function Thumb(props) {
                                     margin: 0
                                 }}>
                                     <Box sx={{ justifyContent:'right' }}>
-                                        <div>{props.name} </div> 
+                                        <div>{name} </div> 
                                     </Box>
                                 </Box>
                             }
-                            { props.smallThumb !== true &&
+                            { smallThumb !== true &&
                                 <Box width="100%" sx={{
                                     position: 'absolute',
                                     height: 32,
@@ -148,7 +145,7 @@ function Thumb(props) {
                                     margin: 0
                                 }}>
                                     <Box>
-                                        <div>{props.name} {now}</div>
+                                        <div>{name} {now}</div>
                                     </Box>
                                 </Box>
                             }
