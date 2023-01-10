@@ -9,7 +9,7 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
-import { DEVEL } from "../App";
+import { DEVEL } from "./Constants";
 import '@fontsource/roboto/300.css';
 
 function Login(props) {
