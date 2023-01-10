@@ -59,12 +59,14 @@ function Home(props) {
 		setSelectedDevice(id);
 		localStorage.setItem("selectedDevice", id);
 		setMobileDrawerOpen(false);
+		setPage(PAGE_SINGLE_CAM);
 	}
 
 	const handleAreaClick = (event, area) => {
 		setSelectedArea(area);
 		localStorage.setItem("selectedArea", area);
 		setMobileDrawerOpen(false);
+		setPage(PAGE_MULTI_CAM);
 	}
 
 	const handleMultiClick = (event, id) => {

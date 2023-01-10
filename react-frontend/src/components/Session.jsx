@@ -80,9 +80,9 @@ const SessionOthers = (props) => {
                 return (<Box>No other viewers.</Box>);
             } else {
                 const others = Object.keys(session.others).map((osub) =>
-                    <ListItem>
+                    <ListItem key={osub}>
                         <Avatar sx={{ backgroundColor: 'white', opacity: session.others[osub].session_age > 15 ? '30%' : '100%' }} src={session.others[osub].session_picture} />
-                        <ListItemText sx={{ ml: 1 }}
+                        <ListItemText key={osub} sx={{ ml: 1 }}
                             primary={session.others[osub].session_name}
                             secondary={session.others[osub].session_age > 15 ? "active recently" : "active now"} />
                     </ListItem>
@@ -95,7 +95,8 @@ const SessionOthers = (props) => {
                     {
                         Object.keys(session.others).map((osub) => {
                             if (session.others[osub].session_age < 60)
-                                return (<Tooltip title={session.others[osub].session_age > 15 ? session.others[osub].session_name + " (active recently)" : "Also viewing: " + session.others[osub].session_name}>
+                                return (
+                                <Tooltip title={session.others[osub].session_age > 15 ? session.others[osub].session_name + " (active recently)" : "Also viewing: " + session.others[osub].session_name}>
                                     <Avatar sx={{ backgroundColor: 'white', height: 28, width: 28, ml: '2px', opacity: session.others[osub].session_age > 15 ? '60%' : '100%' }} src={session.others[osub].session_picture} />
                                 </Tooltip>)
                             else

@@ -60,7 +60,6 @@ function Thumb({zoomable, smallThumb, id, name, imgWidth, imgHeight, interval, h
             }
         }
 
-
         req.current = Axios.CancelToken.source();
         let reqCopy = req.current;
 
@@ -71,7 +70,7 @@ function Thumb({zoomable, smallThumb, id, name, imgWidth, imgHeight, interval, h
             setReloading(true);
             fetchThumb(id);
         } else {
-            setTimeout( () => fetchThumb(id), interval/10 );
+            setTimeout( () => fetchThumb(id), 100 );
         }
 
         let oi = Number(interval);

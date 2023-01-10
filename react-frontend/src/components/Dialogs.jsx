@@ -10,7 +10,7 @@ import Thumb from "./Thumb";
 const OthersDialog = (props) => {
     let session = props.session;
     return (
-        <Dialog maxWidth={props.width - 20} open={props.open} onClose={() => props.setOpen(false)}>
+        <Dialog open={props.open} onClose={() => props.setOpen(false)}>
             <DialogActions>
                 <IconButton onClick={() => props.setOpen(false)}><CloseIcon /></IconButton>
             </DialogActions>

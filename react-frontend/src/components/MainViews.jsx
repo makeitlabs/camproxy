@@ -39,7 +39,7 @@ const MainViews = (props) => {
                     <Grid container alignItems="left" justifyContent="left" rowSpacing="1px" columnSpacing="1px" sx={{ p: 1 }}>
                         {
                             Object.values(getSelectedAreaIds(selectedArea, areas)).map((item) => (
-                                <Grid item sx={{ minWidth: 320, justifyContent: 'center' }}>
+                                <Grid item key={item} sx={{ minWidth: 320, justifyContent: 'center' }}>
                                     {width < 360 &&
                                         <Thumb smallThumb id={item} name={lookupDevice(item, devices)} imgWidth={width - 3} interval="4000"  onClick={props.onMultiClick} {...props}></Thumb>
                                     }

@@ -13,7 +13,7 @@ const DrawerContents = (props) => {
     let areas = props.areas;
     let devices = props.devices;
     let selectedArea = props.selectedArea;
-    
+
     return (
         <div>
             {selectedPage === PAGE_SINGLE_CAM &&
@@ -23,17 +23,24 @@ const DrawerContents = (props) => {
                         <List dense>
                             {
                                 Object.keys(areas).map((item) => (
-                                    <>
-                                        <ListSubheader sx={{ color: 'green', fontWeight: 'bold', backgroundColor: '#eeeeee' }}>{item}</ListSubheader>
+                                    <List dense key={item}>
+                                        <ListSubheader key={item} sx={{ color: 'green', fontWeight: 'bold', backgroundColor: '#eeeeee' }}>
+                                            <ListItemButton key={item + "_1"} onClick={(event) => props.onAreaClick(event, item) } >
+                                                <Box sx={{ display: 'flex', p: 0, alignItems: 'center' }}>
+                                                    <AreaIcon sx={{ mr: 1 }} />
+                                                    {item}
+                                                </Box>
+                                            </ListItemButton>
+                                        </ListSubheader>
                                         {areas[item].map((dev) => (
                                             <ListItem key={dev} disablePadding selected={selectedDevice === dev}>
-                                                <ListItemButton onClick={(event) => props.onDeviceClick(event, dev)} >
-                                                    <ListItemIcon sx={{ minWidth: '12px', paddingRight: '2px', opacity: '50%' }}><CameraIcon /></ListItemIcon>
-                                                    <ListItemText primary={lookupDevice(dev, devices).split(' - ')[1]} />
+                                                <ListItemButton key={dev + "_1"} onClick={(event) => props.onDeviceClick(event, dev)} >
+                                                    <ListItemIcon key={dev + "_2"} sx={{ minWidth: '12px', paddingRight: '2px', opacity: '50%' }}><CameraIcon /></ListItemIcon>
+                                                    <ListItemText key={dev + "_3"} primary={lookupDevice(dev, devices).split(' - ')[1]} />
                                                 </ListItemButton>
                                             </ListItem>
                                         ))}
-                                    </>
+                                    </List>
                                 ))
 
                             }
@@ -41,10 +48,9 @@ const DrawerContents = (props) => {
                         </List>
                     }
                     {Object.keys(areas).length === 0 &&
-                        <List dense>
-                            <ListItem><CircularProgress disableShrink /></ListItem>
-                            <ListItem>Loading...</ListItem>
-                        </List>
+                        <Box sx={{ width: '100%', textAlign: 'center', p: 2 }}>
+                            <CircularProgress disableShrink />
+                        </Box>
                     }
                 </Box>
             }
@@ -68,10 +74,9 @@ const DrawerContents = (props) => {
                         </List>
                     }
                     {Object.keys(areas).length === 0 &&
-                        <List dense>
-                            <ListItem><CircularProgress disableShrink /></ListItem>
-                            <ListItem>Loading...</ListItem>
-                        </List>
+                        <Box sx={{ width: '100%', textAlign: 'center', p: 2 }}>
+                            <CircularProgress disableShrink />
+                        </Box>
                     }
                 </Box>
             }
@@ -96,7 +101,7 @@ const AppDrawer = (props) => {
             >
                 <DrawerContents {...props} />
             </Drawer>
-            
+
             <Drawer
                 variant="permanent"
                 sx={{
