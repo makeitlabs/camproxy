@@ -69,14 +69,19 @@ function Thumb(props) {
             clearInterval(tid);
             setReloading(true);
             getThumb(props.id);
+        } else {
+            setTimeout( () => getThumb(props.id), props.interval/10 );
         }
 
         if (props.zoomable) {
             getThumb(props.id);
         } else {
+            let oi = Number(props.interval);
+            let interval = oi + (Math.random() * oi/10) - oi/20;
+
             tid = setInterval(() => {
                 getThumb(props.id);
-            }, props.interval);
+            }, interval);
         }
         return () => {
             reqCopy.cancel();

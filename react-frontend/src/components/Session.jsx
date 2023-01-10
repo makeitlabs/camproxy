@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Box, IconButton, Typography, Avatar, Badge, Tooltip } from '@mui/material';
+import { Box, Avatar, Tooltip } from '@mui/material';
 import { List, ListItem, ListItemText } from '@mui/material';
-import { BACKEND_URL, WIDE_BREAK } from "./Constants";
+import { BACKEND_URL } from "./Constants";
 import Axios from "axios";
 
 function useSession() {
@@ -9,7 +9,6 @@ function useSession() {
 
     return [session, setSession];
 }
-
 
 const Session = (props) => {
     let setSession = props.setSession;
@@ -85,7 +84,7 @@ const SessionOthers = (props) => {
             } else {
                 const others = Object.keys(session.others).map((osub) =>
                     <ListItem>
-                        <Avatar sx={{ opacity: session.others[osub].session_age > 15 ? '30%' : '100%' }} src={session.others[osub].session_picture} />
+                        <Avatar sx={{ backgroundColor: 'white', opacity: session.others[osub].session_age > 15 ? '30%' : '100%' }} src={session.others[osub].session_picture} />
                         <ListItemText sx={{ ml: 1 }}
                             primary={session.others[osub].session_name}
                             secondary={session.others[osub].session_age > 15 ? "active recently" : "active now"} />
@@ -100,7 +99,7 @@ const SessionOthers = (props) => {
                         Object.keys(session.others).map((osub) => {
                             if (session.others[osub].session_age < 60)
                                 return (<Tooltip title={session.others[osub].session_age > 15 ? session.others[osub].session_name + " (active recently)" : "Also viewing: " + session.others[osub].session_name}>
-                                    <Avatar sx={{ height: 28, width: 28, ml: '2px', opacity: session.others[osub].session_age > 15 ? '60%' : '100%' }} src={session.others[osub].session_picture} />
+                                    <Avatar sx={{ backgroundColor: 'white', height: 28, width: 28, ml: '2px', opacity: session.others[osub].session_age > 15 ? '60%' : '100%' }} src={session.others[osub].session_picture} />
                                 </Tooltip>)
                         })
                     }
@@ -112,49 +111,6 @@ const SessionOthers = (props) => {
 }
 
 
-const SessionAppBar = (props) => {
-    let session = props.session;
 
-    return (
-        <Box sx={{ display: 'flex', flexGrow: 0, alignItems: 'center' }}>
-
-            <Box sx={{ flexGrow: 0, display: { xs: 'none' }, marginRight: "10px" }}>
-                <Tooltip title={props.auth ? props.auth["email"] : ""}><Typography variant="button">{props.auth ? props.auth["name"] : ""}</Typography></Tooltip>
-            </Box>
-
-            {props.width >= WIDE_BREAK &&
-                <SessionOthers session={session} />
-            }
-
-            <IconButton sx={{ p: 0 }}>
-                {props.width < WIDE_BREAK &&
-                    <Tooltip title={props.auth ? props.auth["name"] + " (you), and others." : "(you), and others."}>
-                        <Badge anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                            overlap="circular"
-                            invisible={SessionOthersCount(session) === 0}
-                            badgeContent={SessionOthersCount(session)}
-                            color="secondary">
-                            <Avatar alt={props.auth ? props.auth["name"] + " (you)" : "(you)"} src={props.auth ? props.auth["picture"] : ""} onClick={() => { props.setOthersOpen(true) }} />
-                        </Badge>
-                    </Tooltip>
-                }
-                {props.width >= WIDE_BREAK &&
-                    <Tooltip title={props.auth ? props.auth["name"] + " (you)" : "(you)"}>
-                        <Avatar alt={props.auth ? props.auth["name"] + " (you)" : "(you)"} src={props.auth ? props.auth["picture"] : ""} onClick={() => { props.setOthersOpen(true) }} />
-                    </Tooltip>
-                }
-            </IconButton>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', marginRight: '5px', marginLeft: '10px', userSelect: 'none' }}>
-                <Tooltip title="Session time remaining">
-                    <Typography variant="caption">{RemainingTime(session)}</Typography>
-                </Tooltip>
-            </Box>
-
-        </Box>
-    );
-}
-
-
-export { useSession, Session, SessionAppBar, SessionOthers, SessionOthersCount };
+export { useSession, Session, SessionOthers, SessionOthersCount, RemainingTime };
 
