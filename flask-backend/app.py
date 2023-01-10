@@ -68,11 +68,12 @@ def login_required(f):
                     now = datetime.now().strftime('%s')
                     when = r.hget('session_time', sub)
                     if (when is not None):
-                        r.hset('session_last', sub, now)
                         age = int(now) - int(when)
                         
                         if age > MAX_SESSION_LENGTH:
                             return abort(429)
+
+                        r.hset('session_last', sub, now)
                 
                 
                 return f()
@@ -98,6 +99,7 @@ def callback():
 
     sub = id_info.get('sub')
     session['google_id'] = sub
+    session['google_name'] = id_info.get('name')
 
     print(f"{sub} {id_info.get('name')}")
     now = int(datetime.now().strftime('%s'))
@@ -110,20 +112,6 @@ def callback():
 
     # removing the specific audience, as it is throwing error
     del id_info['aud']
-
-# {'iss': 'https://accounts.google.com',
-#  'azp': '1069983490597-v45fiih31mmlvo0t6efmibjuc09nagkb.apps.googleusercontent.com',
-#  'aud': '1069983490597-v45fiih31mmlvo0t6efmibjuc09nagkb.apps.googleusercontent.com',
-#  'sub': '100168165519539079927',
-#  'hd': 'makeitlabs.com',
-#  'email': 'steve.richardson@makeitlabs.com',
-#  'email_verified': True,
-#  'at_hash': 'nHCJFvAZsFgTG1oT_TuwpQ',
-#  'name': 'Steve Richardson',
-#  'picture': 'https://lh3.googleusercontent.com/a/AEdFTp4J-ga2u8qNy1jQmwsJ3DUZdl5QtC-g-NP4AuUW=s96-c',
-#  'given_name': 'Steve',
-#  'family_name': 'Richardson',
-#  'locale': 'en', 'iat': 1673273275, 'exp': 1673276875}
 
     jwt_token=Generate_JWT(id_info)
 
@@ -185,7 +173,6 @@ def home():
 @login_required
 def session_info():
     sub = session["google_id"]
-    print(f"get session info for sub {sub}")
     try:
         when = r.hget('session_time', sub)
         if (when is not None):
@@ -205,7 +192,7 @@ def session_info():
 
                 if osub != sub and olast is not None:
                     age = now - int(olast)
-                    if age < 60:
+                    if age < 600:
                         record = {}
                         record['session_age'] = age
                         record['session_last'] = olast
@@ -213,13 +200,8 @@ def session_info():
                         if opic is not None:
                             record['session_picture'] = opic
 
-                        print(record)
                         info['others'][osub] = record
-                    else:
-                        print(f"{oname}: session aged out")
 
-            print(f"info response for {sub}:")
-            print(info)
             return Response(
                 response=json.dumps(info),
                 status=200,

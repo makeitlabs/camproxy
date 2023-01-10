@@ -9,7 +9,6 @@ import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
 function Thumb({ id, name, height, width, interval, smallThumb, clickCallback, timeoutCallback, zoomable }) {
     const [thumb, setThumb] = useState(null);
-    const [timerId, setTimerId] = useState(null);
     const [reloading, setReloading] = useState(false);
     const [zoomMode, setZoomMode] = useState(false);
     
@@ -61,14 +60,15 @@ function Thumb({ id, name, height, width, interval, smallThumb, clickCallback, t
     }
 
     useEffect(() => {
+        let tid = -1;
+
         req.current = Axios.CancelToken.source();
         let reqCopy = req.current;
 
         setZoomMode(zoomable);
 
-        if (timerId !== null) {
-            clearInterval(timerId);
-            //setThumb(null);
+        if (thumb !== null) {
+            clearInterval(tid);
             setReloading(true);
             getThumb(id);
         }
@@ -76,16 +76,13 @@ function Thumb({ id, name, height, width, interval, smallThumb, clickCallback, t
         if (zoomable) {
             getThumb(id);
         } else {
-            const tid = setInterval(() => {
+            tid = setInterval(() => {
                 getThumb(id);
             }, interval);
-            setTimerId(tid);
         }
         return () => {
-            if (zoomable) {
-                reqCopy.cancel();
-                clearInterval(timerId);
-            }
+            reqCopy.cancel();
+            clearInterval(tid);
         }
     }, [id, interval, width]);
 

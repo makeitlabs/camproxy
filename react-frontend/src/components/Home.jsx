@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { BACKEND_URL, DEVEL } from "../App";
 import Axios from "axios";
 import { useNavigate } from "react-router";
-import { CssBaseline, Grid, AppBar, Box, Toolbar, IconButton, Typography, Avatar, Tooltip, Drawer, CircularProgress } from '@mui/material';
+import { CssBaseline, Grid, AppBar, Box, Toolbar, IconButton, Typography, Avatar, Badge, Tooltip, Drawer, CircularProgress } from '@mui/material';
 import { Dialog, DialogTitle, DialogActions, DialogContent } from '@mui/material';
 import { List, ListItem, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -42,7 +42,6 @@ function Home(props) {
 	const [selectedArea, setSelectedArea] = useState(null);
 	const [selectedPage, setSelectedPage] = useState(PAGE_SINGLE_CAM);
 	const [sessionInfo, setSessionInfo] = useState({});
-	const [timerId, setTimerId] = useState(null);
 
 	const nav = useNavigate()
 
@@ -83,6 +82,8 @@ function Home(props) {
 	  
 	  
 	useEffect(() => {
+		let tid = -1;
+
 		if (localStorage.getItem('JWT') == null) {
 			return nav("/login")
 		}
@@ -138,12 +139,11 @@ function Home(props) {
 
 		fetchSessionInfo();
 
-        const tid = setInterval(() => {
+        tid = setInterval(() => {
 			fetchSessionInfo();
         }, 10000);
-        setTimerId(tid);
         return () => {
-            clearInterval(timerId);
+            clearInterval(tid);
         }		
 
 	}, [nav, setDevices])
@@ -156,8 +156,15 @@ function Home(props) {
 				const info = res.data;
 				setSessionInfo(info);
 			})
-			.catch((err) => console.log(err));		
-	}
+			.catch((err) => {
+
+				if (err.response && err.response.status === 429) {
+					handleTimeout();
+				} else {
+					//console.log(err);
+				}
+			})
+}
 
 	const getRemainingTime = (i) => {
 		if (i !== undefined && i.remaining_time !== undefined) {
@@ -177,18 +184,25 @@ function Home(props) {
 
 	const renderOthers = (info, listFormat) => {
 		if (info !== undefined && info.others !== undefined) {
+			let otherCount = Object.keys(info.others).length;
+
 			if (listFormat !== undefined) {
 				return (
 					<List>
-						
-					{
-						Object.keys(info.others).map( (osub) => {
-							return (<ListItem>
-										<Avatar sx={{height: 28, width: 28, ml: '2px', opacity: info.others[osub].session_age > 15 ? '30%' : '100%'}} src={info.others[osub].session_picture}/>
-										<Box sx={{ml:1}}>{info.others[osub].session_name}</Box>
-									</ListItem>)
-						})
-					}
+							{ otherCount > 0 &&
+								Object.keys(info.others).map( (osub) => {
+									return (<ListItem>
+												<Avatar sx={{opacity: info.others[osub].session_age > 15 ? '30%' : '100%'}} src={info.others[osub].session_picture}/>
+												<ListItemText sx={{ml:1}}
+												 primary={info.others[osub].session_name}
+												 secondary={info.others[osub].session_age > 15 ? "active recently" : "active now"}/>
+											</ListItem>)
+								})
+							}
+
+							{ otherCount === 0 &&
+								<ListItem><ListItemText primary="None."/></ListItem>
+							}	
 					</List>
 				);
 			} else {
@@ -196,9 +210,10 @@ function Home(props) {
 					<Box sx={{ mr: 2, display: 'flex' }}>
 					{
 						Object.keys(info.others).map( (osub) => {
-							return (<Tooltip title={info.others[osub].session_age > 15 ? "Idle viewer: " + info.others[osub].session_name: "Also viewing: " + info.others[osub].session_name}>
-										<Avatar sx={{height: 28, width: 28, ml: '2px', opacity: info.others[osub].session_age > 15 ? '30%' : '100%'}} src={info.others[osub].session_picture}/>
-									</Tooltip>)
+							if (info.others[osub].session_age < 60) 
+								return (<Tooltip title={info.others[osub].session_age > 15 ? info.others[osub].session_name + " (active recently)" : "Also viewing: " + info.others[osub].session_name}>
+											<Avatar sx={{height: 28, width: 28, ml: '2px', opacity: info.others[osub].session_age > 15 ? '60%' : '100%'}} src={info.others[osub].session_picture}/>
+										</Tooltip>)
 						})
 					}
 					</Box>
@@ -259,7 +274,7 @@ function Home(props) {
 		}
 
 	}
-	const handleThumbTimeout = () => {
+	const handleTimeout = () => {
 		localStorage.removeItem('JWT')
 		return nav('/timeout');
 	}
@@ -354,23 +369,46 @@ function Home(props) {
 							<MenuIcon />
 						</IconButton>
 
-						<Typography
-							variant="h6"
-							noWrap
-							component="a"
-							sx={{
-								mr: 2,
-								display: { xs: 'none', md: 'flex' },
-								fontFamily: 'sans-serif',
-								fontWeight: 700,
-								letterSpacing: '-.05rem',
-								color: 'orange',
-								textDecoration: 'none',
-								textShadow: '1px 1px 1px black'
-							}}
-						>
-							MakeIt Labs
-						</Typography>
+						<Box>
+							<Typography
+								variant="h6"
+								noWrap
+								component="a"
+								sx={{
+									mr: 2,
+									display: { xs: 'none', md: 'flex' },
+									fontFamily: 'sans-serif',
+									fontWeight: 700,
+									letterSpacing: '-.05rem',
+									color: 'orange',
+									textDecoration: 'none',
+									textShadow: '1px 1px 1px black'
+								}}
+							>
+								MakeIt Labs
+							</Typography>
+							{ DEVEL &&
+								<Typography
+									variant="overline"
+									noWrap
+									component="a"
+									sx={{
+										mt: '-15px',
+										mr: 2,
+										display: { xs: 'none', md: 'flex' },
+										fontFamily: 'sans-serif',
+										fontWeight: 200,
+										letterSpacing: '.25rem',
+										color: 'orange',
+										textDecoration: 'none',
+										textShadow: '1px 1px 1px black'
+									}}
+								>
+									DEVELOPMENT
+								</Typography>
+
+							}
+						</Box>
 
 						<Box sx={{ flexGrow: 1, display: { md: 'flex' } }}>
 							<Tooltip title="Single camera view">
@@ -397,9 +435,18 @@ function Home(props) {
 							}
 
 							<IconButton sx={{ p: 0 }}>
-								<Tooltip title={auth ? auth["name"] + " (you)" : "(you)"}>
-									<Avatar alt={auth ? auth["name"] + " (you)" : "(you)"} src={auth ? auth["picture"] : ""} onClick={ () => { setOthersOpen(true) }}/>
-								</Tooltip>
+								{ width < wideBreak &&
+									<Tooltip title={auth ? auth["name"] + " (you), and others." : "(you), and others."}>
+										<Badge overlap="circular" badgeContent={sessionInfo.others !== undefined ? "+" + Object.keys(sessionInfo.others).length : ""} color="primary">
+											<Avatar alt={auth ? auth["name"] + " (you)" : "(you)"} src={auth ? auth["picture"] : ""} onClick={ () => { setOthersOpen(true) }}/>
+										</Badge>
+									</Tooltip>
+								}
+								{ width >= wideBreak &&
+									<Tooltip title={auth ? auth["name"] + " (you)" : "(you)"}>
+										<Avatar alt={auth ? auth["name"] + " (you)" : "(you)"} src={auth ? auth["picture"] : ""} onClick={ () => { setOthersOpen(true) }}/>
+									</Tooltip>
+								}
 							</IconButton>
 
 							<Box sx={{ display: 'flex', alignItems: 'center', marginRight: '5px', marginLeft: '10px', userSelect: 'none'}}>
@@ -457,10 +504,10 @@ function Home(props) {
 						<Box component="main" sx={{ flexGrow: 0, p: '2px' }}>
 							<Toolbar />
 							{ width < wideBreak &&
-								<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)} width={width - 20 } interval="1500" clickCallback={handleSingleClick} timeoutCallback={handleThumbTimeout}></Thumb>
+								<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)} width={width - 3} interval="1500" clickCallback={handleSingleClick} timeoutCallback={handleTimeout}></Thumb>
 							}
 							{ width >= wideBreak &&
-								<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)} width={width - drawerWidth - 60} interval="2000" clickCallback={handleSingleClick} timeoutCallback={handleThumbTimeout}></Thumb>
+								<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)} width={width - drawerWidth - 60} interval="2000" clickCallback={handleSingleClick} timeoutCallback={handleTimeout}></Thumb>
 							}
 						</Box>
 					}
@@ -475,10 +522,10 @@ function Home(props) {
 								Object.values(getSelectedAreaIds(selectedArea)).map((item) => (
 									<Grid item sx={{ minWidth: 320, justifyContent: 'center' }}>
 										{ width < 360 &&
-											<Thumb id={item} name={lookupDevice(item)} width={width - 20} interval="4000" smallThumb clickCallback={handleMultiClick} timeoutCallback={handleThumbTimeout}></Thumb>
+											<Thumb id={item} name={lookupDevice(item)} width={width - 20} interval="4000" smallThumb clickCallback={handleMultiClick} timeoutCallback={handleTimeout}></Thumb>
 										}
 										{ width >= 360 &&
-											<Thumb id={item} name={lookupDevice(item)} width="340" interval="4000" smallThumb clickCallback={handleMultiClick} timeoutCallback={handleThumbTimeout}></Thumb>
+											<Thumb id={item} name={lookupDevice(item)} width="340" interval="4000" smallThumb clickCallback={handleMultiClick} timeoutCallback={handleTimeout}></Thumb>
 										}
 									</Grid>
 								))
@@ -493,9 +540,9 @@ function Home(props) {
 					<DialogActions>
 						<IconButton onClick={ () => setZoomableOpen(false) }><CloseIcon/></IconButton>
 					</DialogActions>
-					<DialogTitle>Zoom and Scroll</DialogTitle>
+					<DialogTitle>Zoom and Scroll Snapshot Image</DialogTitle>
 					<DialogContent>
-						<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)} width={1920} interval="0" timeoutCallback={handleThumbTimeout} zoomable ></Thumb>
+						<Thumb id={selectedDevice} name={lookupDevice(selectedDevice)} width={1920} interval="0" timeoutCallback={handleTimeout} zoomable ></Thumb>
 					</DialogContent>
 				</Dialog>
 			}
