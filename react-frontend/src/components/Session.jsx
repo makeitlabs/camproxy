@@ -18,7 +18,6 @@ const Session = (props) => {
             headers: { "authorization": `Bearer ${localStorage.getItem('JWT')}` }
         })
             .then((res) => {
-                console.log("got session info", res.data);
                 setSession(res.data);
             })
             .catch((err) => {

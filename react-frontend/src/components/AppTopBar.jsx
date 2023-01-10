@@ -7,7 +7,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { SessionOthers, SessionOthersCount, RemainingTime } from './Session';
 import { DEVEL, PAGE_SINGLE_CAM, PAGE_MULTI_CAM, DRAWER_WIDTH, WIDE_BREAK } from './Constants';
 
-const SessionAppBar = (props) => {
+const SessionInfo = (props) => {
     let session = props.session;
 
     return (
@@ -85,7 +85,8 @@ const AppTopBar = (props) => {
                     >
                         <MenuIcon />
                     </IconButton>
-                    <AppLogoText />
+
+                    <AppLogoText devel={DEVEL} onClick={props.onLogoClick} />
 
                     <Box sx={{ flexGrow: 1, display: { md: 'flex' } }}>
                         <Tooltip title="Single camera view">
@@ -101,7 +102,7 @@ const AppTopBar = (props) => {
                         </Tooltip>
                     </Box>
 
-                    <SessionAppBar session={session} auth={auth} width={width} setOthersOpen={() => { props.setOthersOpen(true) }} />
+                    <SessionInfo session={session} auth={auth} width={width} setOthersOpen={() => { props.setOthersOpen(true) }} />
 
                     <Tooltip title="Logout">
                         <IconButton onClick={() => props.handleLogout()} color="inherit">

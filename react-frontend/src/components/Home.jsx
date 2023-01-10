@@ -6,22 +6,23 @@ import { CssBaseline, Box } from '@mui/material';
 import AppTopBar from "./AppTopBar";
 import AppDrawer from "./AppDrawer";
 import MainViews from "./MainViews";
-import { OthersDialog, ZoomDialog } from "./Dialogs";
+import { OthersDialog, ZoomDialog, AboutDialog } from "./Dialogs";
 import { useSession, Session } from "./Session";
 import { useDevices, useAreas, Devices, findAreaForDevice } from "./Devices";
 import { BACKEND_URL, PAGE_SINGLE_CAM, PAGE_MULTI_CAM, WIDE_BREAK } from './Constants';
-import { getLocalItem  } from './Helpers';
+import { getLocalItem } from './Helpers';
 import '@fontsource/roboto/300.css';
 
 
 function Home(props) {
 	const [zoomableOpen, setZoomableOpen] = useState(false);
 	const [othersOpen, setOthersOpen] = useState(false);
+	const [aboutOpen, setAboutOpen] = useState(false);
 	const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
 	const [auth, setAuth] = useState(null);
 	const [session, setSession] = useSession({});
-	
+
 	const [devices, setDevices] = useDevices({});
 	const [areas, setAreas] = useAreas({});
 
@@ -97,22 +98,23 @@ function Home(props) {
 		<Box sx={{ display: 'flex' }} >
 			<CssBaseline />
 			<Session session={session} setSession={setSession} auth={auth} />
-			<Devices setDevices={setDevices} setAreas={setAreas} setSelectedDevice={setSelectedDevice} setSelectedArea={setSelectedArea} {...props}/>
+			<Devices setDevices={setDevices} setAreas={setAreas} setSelectedDevice={setSelectedDevice} setSelectedArea={setSelectedArea} {...props} />
 
-			<AppTopBar onDrawerToggle={ () => setMobileDrawerOpen(true) }
-				selectedPage={selectedPage} setPage={setPage} setOthersOpen={setOthersOpen}
-				session={session} auth={auth} {...props}/>
+			<AppTopBar onDrawerToggle={() => setMobileDrawerOpen(true)}
+				selectedPage={selectedPage} setPage={setPage} setOthersOpen={setOthersOpen} onLogoClick={setAboutOpen}
+				session={session} auth={auth} {...props} />
 
-			<AppDrawer open={mobileDrawerOpen} onDrawerToggle={ () => setMobileDrawerOpen(false) }
+			<AppDrawer open={mobileDrawerOpen} onDrawerToggle={() => setMobileDrawerOpen(false)}
 				onDeviceClick={handleDeviceClick} onAreaClick={handleAreaClick}
-				devices={devices} areas={areas} selectedPage={selectedPage} selectedDevice={selectedDevice} selectedArea={selectedArea} {...props}/>
+				devices={devices} areas={areas} selectedPage={selectedPage} selectedDevice={selectedDevice} selectedArea={selectedArea} {...props} />
 
 			<MainViews zoomableOpen={zoomableOpen}
 				devices={devices} areas={areas} selectedPage={selectedPage} selectedDevice={selectedDevice} selectedArea={selectedArea}
-				onSingleClick={handleSingleClick} onMultiClick={handleMultiClick} {...props}/>
+				onSingleClick={handleSingleClick} onMultiClick={handleMultiClick} {...props} />
 
-			<ZoomDialog id={selectedDevice} devices={devices} open={zoomableOpen} setOpen={setZoomableOpen} {...props}/>
-			<OthersDialog session={session} open={othersOpen} setOpen={setOthersOpen} {...props}/>
+			<ZoomDialog id={selectedDevice} devices={devices} open={zoomableOpen} setOpen={setZoomableOpen} {...props} />
+			<OthersDialog session={session} open={othersOpen} setOpen={setOthersOpen} {...props} />
+			<AboutDialog open={aboutOpen} setOpen={setAboutOpen} {...props} />
 		</Box>
 
 	);
