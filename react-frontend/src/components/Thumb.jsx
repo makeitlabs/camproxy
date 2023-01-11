@@ -63,7 +63,7 @@ function Thumb({ zoomable, smallThumb, id, name, imgWidth, imgHeight, interval, 
                         if (err.response && err.response.status === 429) {
                             handleTimeout();
                         } else {
-                            handleLogout();
+                            setThumb("/colorbars.png");
                         }
                     })
             }
