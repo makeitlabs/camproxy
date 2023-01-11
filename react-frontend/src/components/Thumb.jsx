@@ -7,7 +7,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
-function Thumb({ zoomable, smallThumb, id, name, imgWidth, imgHeight, interval, handleTimeout, onClick }) {
+function Thumb({ zoomable, smallThumb, id, name, imgWidth, imgHeight, interval, handleTimeout, handleLogout, onClick }) {
     const [thumb, setThumb] = useState(null);
     const [reloading, setReloading] = useState(false);
     const [zoomMode, setZoomMode] = useState(false);
@@ -62,6 +62,8 @@ function Thumb({ zoomable, smallThumb, id, name, imgWidth, imgHeight, interval, 
                     .catch((err) => {
                         if (err.response && err.response.status === 429) {
                             handleTimeout();
+                        } else {
+                            handleLogout();
                         }
                     })
             }
@@ -92,7 +94,7 @@ function Thumb({ zoomable, smallThumb, id, name, imgWidth, imgHeight, interval, 
             reqCopy.cancel();
             clearInterval(tidRef.current);
         }
-    }, [id, interval, imgWidth, imgHeight, zoomable, handleTimeout]);
+    }, [id, interval, imgWidth, imgHeight, zoomable, handleTimeout, handleLogout]);
 
     var now = new Date().toLocaleString();
 

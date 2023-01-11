@@ -16,7 +16,7 @@ function useAreas() {
     return [areas, setAreas];
 }
 
-const Devices = ( { setDevices, setAreas, setSelectedDevice, setSelectedArea }) => {
+const Devices = ( { setDevices, setAreas, setSelectedDevice, setSelectedArea, handleLogout }) => {
 
     useEffect(() => {
         Axios.get(`${BACKEND_URL}/devices`, {
@@ -54,9 +54,13 @@ const Devices = ( { setDevices, setAreas, setSelectedDevice, setSelectedArea }) 
                 let selArea = getLocalItem("selectedArea", arealist[0]);
                 setSelectedArea(selArea);
             })
-            .catch((err) => console.log(err));
+            .catch((err) => {
+                console.log(err);
+                handleLogout();
 
-    }, [setDevices, setAreas, setSelectedDevice, setSelectedArea] )
+            })
+
+    }, [setDevices, setAreas, setSelectedDevice, setSelectedArea, handleLogout] )
 
     return null;
 }

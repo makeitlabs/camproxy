@@ -57,28 +57,31 @@ flow = Flow.from_client_secrets_file(
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        auth_header=request.headers.get("Authorization")
-        if auth_header is not None and "Bearer " in auth_header:
-            junk, encoded_jwt=auth_header.split("Bearer ")
-            if encoded_jwt==None:
-                return abort(401)
-            else:
-                sub = session["google_id"]
-                if sub is not None:
-                    now = datetime.now().strftime('%s')
-                    when = r.hget('session_time', sub)
-                    if (when is not None):
-                        age = int(now) - int(when)
-                        
-                        if age > MAX_SESSION_LENGTH:
-                            return abort(429)
+        try:
+            auth_header=request.headers.get("Authorization")
+            if auth_header is not None and "Bearer " in auth_header:
+                junk, encoded_jwt=auth_header.split("Bearer ")
+                if encoded_jwt==None:
+                    return abort(401)
+                else:
+                    sub = session["google_id"]
+                    if sub is not None:
+                        now = datetime.now().strftime('%s')
+                        when = r.hget('session_time', sub)
+                        if (when is not None):
+                            age = int(now) - int(when)
+                            
+                            if age > MAX_SESSION_LENGTH:
+                                return abort(429)
 
-                        r.hset('session_last', sub, now)
-                
-                
-                return f()
-        else:
-            return abort(401)
+                            r.hset('session_last', sub, now)
+                    
+                    
+                    return f()
+            else:
+                return abort(401)
+        except:
+            return abort(500)
     return wrapper
 
 def Generate_JWT(payload):
