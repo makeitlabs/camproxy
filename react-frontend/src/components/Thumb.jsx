@@ -7,38 +7,39 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import QuickPinchZoom, { make3dTransformValue } from 'react-quick-pinch-zoom';
 
-function Thumb({zoomable, smallThumb, id, name, imgWidth, imgHeight, interval, handleTimeout, onClick}) {
+function Thumb({ zoomable, smallThumb, id, name, imgWidth, imgHeight, interval, handleTimeout, onClick }) {
     const [thumb, setThumb] = useState(null);
     const [reloading, setReloading] = useState(false);
     const [zoomMode, setZoomMode] = useState(false);
-    
+
     var req = useRef(null);
-    const imgRef = useRef();
+
+    const zoomRef = useRef(null);
+    const imgRef = useRef(null);
     const thumbLoadedRef = useRef(null);
     const tidRef = useRef(null);
 
-	const onUpdate = useCallback(({ x, y, scale }) => {
-	  const { current: img } = imgRef;
-  
-	  if (img) {
-		const value = make3dTransformValue({ x, y, scale });
-  
-		img.style.setProperty("transform", value);
-	  }
-	}, []);
+    const onUpdate = useCallback(({ x, y, scale }) => {
+        const { current: img } = imgRef;
+
+        if (img) {
+            const value = make3dTransformValue({ x, y, scale });
+            img.style.setProperty("transform", value);
+        }
+    }, []);
 
     useEffect(() => {
         const fetchThumb = (id) => {
             if (id) {
-                let url="";
+                let url = "";
                 if (imgHeight !== undefined) {
-                    url=`${BACKEND_URL}/thumbnail?camera_id=${id}&height=${imgHeight}`;
+                    url = `${BACKEND_URL}/thumbnail?camera_id=${id}&height=${imgHeight}`;
                 } else if (imgWidth !== undefined) {
                     let w = imgWidth;
                     if (w > 1280) {
                         w = 1280;
                     }
-                    url=`${BACKEND_URL}/thumbnail?camera_id=${id}&width=${w}`;
+                    url = `${BACKEND_URL}/thumbnail?camera_id=${id}&width=${w}`;
                 }
                 Axios.get(url, {
                     responseType: 'blob',
@@ -49,12 +50,18 @@ function Thumb({zoomable, smallThumb, id, name, imgWidth, imgHeight, interval, h
                         setThumb(URL.createObjectURL(res.data));
                         thumbLoadedRef.current = true;
                         setReloading(false);
+                        if (zoomable) {
+                            setTimeout(() => {
+                                let e = document.getElementById('zoomer');
+                                let zw = e.clientWidth;
+                                let zh = e.clientHeight;
+                                zoomRef.current.alignCenter({ x: zw / 2, y: zh / 2, scale: 5, duration: 1000 });
+                            }, 100);
+                        }
                     })
                     .catch((err) => {
                         if (err.response && err.response.status === 429) {
                             handleTimeout();
-                        } else {
-                            //console.log(err);
                         }
                     })
             }
@@ -70,15 +77,17 @@ function Thumb({zoomable, smallThumb, id, name, imgWidth, imgHeight, interval, h
             setReloading(true);
             fetchThumb(id);
         } else {
-            setTimeout( () => fetchThumb(id), 100 );
+            setTimeout(() => fetchThumb(id), 100);
         }
 
-        let oi = Number(interval);
-        let randomized_interval = Math.floor(oi + (Math.random() * oi/10) - oi/20);
+        if (!zoomable) {
+            let oi = Number(interval);
+            let randomized_interval = Math.floor(oi + (Math.random() * oi / 10) - oi / 20);
 
-        tidRef.current = setInterval(() => {
-            fetchThumb(id);
-        }, randomized_interval);
+            tidRef.current = setInterval(() => {
+                fetchThumb(id);
+            }, randomized_interval);
+        }
         return () => {
             reqCopy.cancel();
             clearInterval(tidRef.current);
@@ -89,69 +98,74 @@ function Thumb({zoomable, smallThumb, id, name, imgWidth, imgHeight, interval, h
 
     return (
         <Box>
-            { thumb === null &&
+            {(thumb === null && !zoomMode) &&
 
-                <Box sx={{ backgroundColor: '#eeeeee', width: imgWidth, height: (imgWidth*9/16), display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                    <CircularProgress disableShrink/>
-                    { smallThumb !== true &&
-                        <Typography variant="h6" sx={{marginLeft: '10px'}}>Loading...</Typography>
+                <Box sx={{ backgroundColor: '#eeeeee', width: imgWidth, height: (imgWidth * 9 / 16), display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <CircularProgress disableShrink />
+                    {smallThumb !== true &&
+                        <Typography variant="h6" sx={{ marginLeft: '10px' }}>Loading...</Typography>
                     }
                 </Box>
 
             }
-            { (thumb !== null && zoomMode) &&
-                <QuickPinchZoom onUpdate={onUpdate} minZoom={0.75} maxZoom={10}>
-                    <img src={thumb} alt="" ref={imgRef}/>
-                </QuickPinchZoom>
+            {zoomMode &&
+                <Box id="zoomer" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    {thumb === null &&
+                        <CircularProgress disableShrink sx={{ m: 2 }} />
+                    }
+                    <QuickPinchZoom onUpdate={onUpdate} minZoom={0.1} maxZoom={12} ref={zoomRef} >
+                        <img src={thumb} alt="" ref={imgRef} />
+                    </QuickPinchZoom>
+                </Box>
             }
-            { (thumb !== null && !zoomMode) &&
-                    <Box sx={{ width: '100%', height: '100%', backgroundColor: '#aaaaaa', textAlign: 'center'}} >
-                        <Button sx={{ p: 0, m: 0}} onClick={ (event) => onClick(event, id) }>
-                            <img width={imgWidth} height={imgHeight} src={thumb} alt="" ref={imgRef}/>
-                            { reloading &&
-                                <Box sx={{ position: 'absolute', bottom: 0, right: 0, width: '100%', height: '100%', background: 'black', opacity: '50%', justifyContent: 'center', alignItems: 'center', display: 'flex'}}>
-                                    <CircularProgress disableShrink/>
-                                </Box>
+            {(thumb !== null && !zoomMode) &&
+                <Box sx={{ width: '100%', height: '100%', backgroundColor: '#aaaaaa', textAlign: 'center' }} >
+                    <Button sx={{ p: 0, m: 0 }} onClick={(event) => onClick(event, id)}>
+                        <img width={imgWidth} height={imgHeight} src={thumb} alt="" ref={imgRef} />
+                        {reloading &&
+                            <Box sx={{ position: 'absolute', bottom: 0, right: 0, width: '100%', height: '100%', background: 'black', opacity: '50%', justifyContent: 'center', alignItems: 'center', display: 'flex' }}>
+                                <CircularProgress disableShrink />
+                            </Box>
 
-                            }
-                            { smallThumb === true &&
-                                <Box sx={{
-                                    position: 'absolute',
-                                    bottom: 0,
-                                    right: 0,
-                                    
-                                    textShadow: '1px 3px 3px black',
-                                    backgroundColor: 'transparent',
-                                    fontWeight: 'bolder',
-                                    color: 'white',
-                                    padding: '4px',
-                                    margin: 0
-                                }}>
-                                    <Box sx={{ justifyContent:'right' }}>
-                                        <div>{name} </div> 
-                                    </Box>
-                                </Box>
-                            }
-                            { smallThumb !== true &&
-                                <Box width="100%" sx={{
-                                    position: 'absolute',
-                                    height: 32,
-                                    bottom: -32,
-                                    backgroundColor: 'transparent',
-                                    fontWeight: 'bolder',
-                                    color: 'black',
-                                    padding: '4px',
-                                    margin: 0
-                                }}>
-                                    <Box>
-                                        <div>{name} {now}</div>
-                                    </Box>
-                                </Box>
-                            }
+                        }
+                        {smallThumb === true &&
+                            <Box sx={{
+                                position: 'absolute',
+                                bottom: 0,
+                                right: 0,
 
-                        </Button>
-                    </Box>
-                }
+                                textShadow: '1px 3px 3px black',
+                                backgroundColor: 'transparent',
+                                fontWeight: 'bolder',
+                                color: 'white',
+                                padding: '4px',
+                                margin: 0
+                            }}>
+                                <Box sx={{ justifyContent: 'right' }}>
+                                    <div>{name} </div>
+                                </Box>
+                            </Box>
+                        }
+                        {smallThumb !== true &&
+                            <Box width="100%" sx={{
+                                position: 'absolute',
+                                height: 32,
+                                bottom: -32,
+                                backgroundColor: 'transparent',
+                                fontWeight: 'bolder',
+                                color: 'black',
+                                padding: '4px',
+                                margin: 0
+                            }}>
+                                <Box>
+                                    <div>{name} {now}</div>
+                                </Box>
+                            </Box>
+                        }
+
+                    </Button>
+                </Box>
+            }
         </Box>
     );
 
