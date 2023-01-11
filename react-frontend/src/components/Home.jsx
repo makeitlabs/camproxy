@@ -8,8 +8,8 @@ import AppDrawer from "./AppDrawer";
 import MainViews from "./MainViews";
 import { OthersDialog, ZoomDialog, AboutDialog } from "./Dialogs";
 import { useSession, Session } from "./Session";
-import { useDevices, useAreas, Devices, findAreaForDevice } from "./Devices";
-import { BACKEND_URL, PAGE_SINGLE_CAM, PAGE_MULTI_CAM, WIDE_BREAK } from './Constants';
+import { useDevices, useAreas, Devices } from "./Devices";
+import { BACKEND_URL, PAGE_SINGLE_CAM, PAGE_MULTI_CAM } from './Constants';
 import { getLocalItem } from './Helpers';
 import '@fontsource/roboto/300.css';
 
@@ -69,31 +69,15 @@ function Home(props) {
 		setPage(PAGE_MULTI_CAM);
 	}
 
-	const handleMultiClick = (event, id) => {
+	const handleMultiThumbClick = (event, id) => {
 		setSelectedDevice(id);
-		if (props.width < WIDE_BREAK) {
-			// on mobile, open up the zoomable snapshot window
-			setZoomableOpen(true);
-		} else {
-			// otherwise, jump to single view of this camera
-			localStorage.setItem("selectedDevice", id);
-			setPage(PAGE_SINGLE_CAM);
-		}
+		// open up the zoomable snapshot window
+		setZoomableOpen(true);
 	}
 
-	const handleSingleClick = (event, id) => {
-		if (props.width < WIDE_BREAK) {
-			// on mobile, open up the zoomable snapshot window
-			setZoomableOpen(true);
-		} else {
-			// otherwise, find the area that contains this camera and show that multi-view
-			let area = findAreaForDevice(id, areas);
-			if (area) {
-				setSelectedArea(area);
-				localStorage.setItem("selectedArea", area);
-				setPage(PAGE_MULTI_CAM);
-			}
-		}
+	const handleSingleThumbClick = (event, id) => {
+		// open up the zoomable snapshot window
+		setZoomableOpen(true);
 	}
 
 	return (
@@ -112,7 +96,7 @@ function Home(props) {
 
 			<MainViews zoomableOpen={zoomableOpen}
 				devices={devices} areas={areas} selectedPage={selectedPage} selectedDevice={selectedDevice} selectedArea={selectedArea}
-				onSingleClick={handleSingleClick} onMultiClick={handleMultiClick} {...props} />
+				onSingleClick={handleSingleThumbClick} onMultiClick={handleMultiThumbClick} {...props} />
 
 			<ZoomDialog id={selectedDevice} devices={devices} open={zoomableOpen} setOpen={setZoomableOpen} {...props} />
 			<OthersDialog session={session} open={othersOpen} setOpen={setOthersOpen} {...props} />

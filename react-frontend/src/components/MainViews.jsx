@@ -1,5 +1,6 @@
 import { Grid, Box, Toolbar } from '@mui/material';
-import { PAGE_SINGLE_CAM, PAGE_MULTI_CAM, WIDE_BREAK, DRAWER_WIDTH } from './Constants';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { PAGE_SINGLE_CAM, PAGE_MULTI_CAM, DRAWER_WIDTH } from './Constants';
 import { lookupDevice, getSelectedAreaIds } from './Devices';
 import Thumb from "./Thumb";
 
@@ -15,18 +16,15 @@ const MainViews = (props) => {
 
     let zoomableOpen = props.zoomableOpen;
 
+    const staticDrawer = useMediaQuery('(min-width:900px)');
+
     if (selectedPage === PAGE_SINGLE_CAM)
         return (
             <Box>
                 {!zoomableOpen &&
                     <Box component="main" sx={{ flexGrow: 0, p: '2px' }}>
                         <Toolbar />
-                        {width < WIDE_BREAK &&
-                            <Thumb id={selectedDevice} name={lookupDevice(selectedDevice, devices)} imgWidth={width - 3} interval="1500" onClick={props.onSingleClick} {...props}></Thumb>
-                        }
-                        {width >= WIDE_BREAK &&
-                            <Thumb id={selectedDevice} name={lookupDevice(selectedDevice, devices)} imgWidth={width - DRAWER_WIDTH - 60} interval="2000" onClick={props.onSingleClick} {...props}></Thumb>
-                        }
+                            <Thumb id={selectedDevice} name={lookupDevice(selectedDevice, devices)} imgWidth={ staticDrawer?  (width - DRAWER_WIDTH - 3) : (width - 3) } interval="1500" onClick={props.onSingleClick} {...props}></Thumb>
                     </Box>
                 }
             </Box>

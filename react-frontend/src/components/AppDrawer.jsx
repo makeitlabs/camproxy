@@ -86,7 +86,7 @@ const DrawerContents = (props) => {
 
 const AppDrawer = (props) => {
     return (
-        <Box component="nav" sx={{ width: { sm: DRAWER_WIDTH }, flexShrink: { sm: 0 } }}>
+        <Box component="nav" sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}>
             <Drawer
                 variant="temporary"
                 open={props.open}
@@ -95,7 +95,7 @@ const AppDrawer = (props) => {
                     keepMounted: true, // Better open performance on mobile.
                 }}
                 sx={{
-                    display: { xs: 'block', sm: 'none' },
+                    display: { xs: 'block', sm: 'block', md: 'none' },
                     '& .MuiDrawer-paper': { boxSizing: 'border-box', width: DRAWER_WIDTH },
                 }}
             >
@@ -105,7 +105,7 @@ const AppDrawer = (props) => {
             <Drawer
                 variant="permanent"
                 sx={{
-                    display: { xs: 'none', sm: 'block' },
+                    display: { xs: 'none', sm: 'none', md: 'block' },
                     '& .MuiDrawer-paper': { boxSizing: 'border-box', width: DRAWER_WIDTH },
                 }}
                 open
